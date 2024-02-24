@@ -1,0 +1,29 @@
+# puzzle prompt: https://adventofcode.com/<YEAR>/day/<DAY>
+
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+
+class Solution(InputAsLinesSolution):
+    _year = <YEAR>
+    _day = <DAY>
+
+    def part_1(self):
+        arr = self.input
+        res = ""
+
+        self.solve("1", res)
+
+    def part_2(self):
+        arr = self.input
+        res = ""
+
+        self.solve("2", res)
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    # solution.part_2()
