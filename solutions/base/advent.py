@@ -70,7 +70,7 @@ class BaseSolution(ABC):
         return data
 
     @final
-    def save(self, part, res):
+    def save(self, part, res, tm):
         answer_path = Path(
             Path(__file__).parent.parent.parent,
             f"ans{part}.txt",
@@ -80,14 +80,15 @@ class BaseSolution(ABC):
             open(answer_path, 'w').close()  # always overwrite
 
         with (answer_path.open("a")) as f:
-            f.write(res)
+            f.write(res + "\n")
+            f.write(int(tm * 1000).__str__() + " msecs")
 
     @final
     def submit(self, part, res):
         submit(res, part=part, day=self.day, year=self.year)
 
-    def solve(self, part, res, submit=True):
-        self.save(part, str(res))
+    def solve(self, part, res, tm, submit=True):
+        self.save(part, str(res), tm)
 
         print(f"Part {part} :: {res}")
 
