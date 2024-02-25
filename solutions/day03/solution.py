@@ -39,8 +39,6 @@ class Solution(InputAsLinesSolution):
 
         overlapped = 0
         for i in range(0, self.SIZE):
-            if not untouched:
-              break
             for j in range(0, self.SIZE):
                 if grid[i][j] >= 2:
                     overlapped += 1
@@ -56,6 +54,8 @@ class Solution(InputAsLinesSolution):
             untouched = True
             
             for i in range(x, x+w):
+                if not untouched:
+                    break
                 for j in range(y, y+h):
                     if grid[i][j] != 1:
                         untouched = False
