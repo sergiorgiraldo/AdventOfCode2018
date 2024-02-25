@@ -10,12 +10,12 @@ class Solution(InputAsLinesSolution):
     _year = 2018
     _day = 1
 
-    def get_final_frequency(self, changes):
+    def get_final_frequency(self, changes)->int:
         changes = list(map(int, changes))
 
         return sum(changes)
 
-    def get_repeating_frequency(self, changes):
+    def get_repeating_frequency(self, changes)->int:
         changes = list(map(int, changes))
         
         seen = {0}

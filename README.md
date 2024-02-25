@@ -18,7 +18,7 @@ My solutions to [Advent of Code 2018](https://adventofcode.com/2018) done in Pyt
 
 `cd` to the day
 
-`python -m tests` && `python -m solution`
+`python -m tests --verbose` && `python -m solution`
 
 to make easier, I have this rule for [`ondir`](https://github.com/alecthomas/ondir) 
 
@@ -26,7 +26,7 @@ to make easier, I have this rule for [`ondir`](https://github.com/alecthomas/ond
 
 ```
 enter ~/source/AdventOfCode2018/(.*)
-    alias pt="python -m tests"
+    alias pt="python -m tests --verbose"
     alias pr="python -m solution"
 
 leave ~/source/AdventOfCode2018/(.*)

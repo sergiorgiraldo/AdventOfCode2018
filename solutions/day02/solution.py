@@ -12,7 +12,7 @@ class Solution(InputAsLinesSolution):
     _year = 2018
     _day = 2
 
-    def compute_checksum(self, box_ids):
+    def compute_checksum(self, box_ids)->int:
         c = Counter[int]()
 
         for id in box_ids:
@@ -20,7 +20,7 @@ class Solution(InputAsLinesSolution):
         
         return c[2]*c[3]
 
-    def get_correct_label(self, box_ids):
+    def get_correct_label(self, box_ids)->str:
         for a,b in combinations(box_ids, r=2):
             ans = [c1 for c1,c2 in zip(a,b) if c1 == c2]
             if len(ans) + 1 == len(a):
