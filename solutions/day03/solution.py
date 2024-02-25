@@ -57,6 +57,7 @@ class Solution(InputAsLinesSolution):
                 for j in range(y, y+h):
                     if grid[i][j] != 1:
                         untouched = False
+                        break
             
             if untouched:
                 return (id + 1)        
