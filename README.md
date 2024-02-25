@@ -16,9 +16,23 @@ My solutions to [Advent of Code 2018](https://adventofcode.com/2018) done in Pyt
 
 ## running a day
 
-cd to the day
+`cd` to the day
 
 `python -m tests` && `python -m solution`
+
+to make easier, I have this rule for [`ondir`](https://github.com/alecthomas/ondir) 
+
+> .ondirrc
+
+```
+enter ~/source/AdventOfCode2018/(.*)
+    alias pt="python -m tests"
+    alias pr="python -m solution"
+
+leave ~/source/AdventOfCode2018/(.*)
+    unalias pt
+    unalias pr
+```
 
 ## Commands
 
