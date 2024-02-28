@@ -31,11 +31,11 @@ class Solution(InputAsLinesSolution):
                 min_count = 0
                 min_idx = None
                 
-                total_manh_distance = 0
+                total_distance = 0
                 
-                for idx, point in enumerate(coords):
-                    dist = self.get_manhattan_distance((x, y), point)
-                    total_manh_distance += dist
+                for idx, enclosed in enumerate(coords):
+                    dist = self.get_manhattan_distance((x, y), enclosed)
+                    total_distance += dist
                     if dist < min_dist:
                         min_dist = dist
                         min_count = 1
@@ -47,19 +47,27 @@ class Solution(InputAsLinesSolution):
                     grid[x][y] = min_idx
                     counts[min_idx] += 1
                 
-                if total_manh_distance < total:
+                if total_distance < total:
                     safe_count += 1
 
-        # Input coordinates have infinite area if they "dominate" a border point
+        # coordinates from the borders of the grid, i.e., outside of it is the infinite void
         border_points = [(x, 0) for x in range(0, max_x + 1)] +\
                         [(x, max_y) for x in range(0, max_x + 1)] +\
                         [(0, y) for y in range(1, max_y + 1)] +\
                         [(max_x, y) for y in range(1, max_y + 1)]
+    
+        # i go through each point of the border. then i remove one of the count for each point, as it is in the border
+        # and over it it will extend over infinity.
 
+        # from the unit test, look at the first line: aaaaa.cccc
+        # my grid[0,0] will have the value 0, this is the index of `A`; my count[0] is initially 15,  there are 15 
+        # points enclosed for `A`. Since 0,0 is in the border, means it goes over infinity, 
+        # then I remove 1 from the count for `A`
+        
         for x, y in border_points:
-            i = grid[x][y]
-            if i is not None:
-                counts[i] = -1
+            enclosed = grid[x][y]
+            if enclosed is not None:
+                counts[enclosed] = -1
 
         return max(counts), safe_count
 
