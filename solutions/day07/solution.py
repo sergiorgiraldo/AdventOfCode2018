@@ -14,32 +14,33 @@ class Solution(InputAsLinesSolution):
     def get_order_of_execution(self, lines) -> str:
         order = ""
 
-        tasks, succ, depth = self.parse(lines)
+        tasks, successors, depth = self.parse(lines)
 
         available_tasks = { task for task in tasks if depth[task] == 0 }
 
         while len(available_tasks) > 0:
-            task = min(available_tasks) #get task with lowest depth
+            task = min(available_tasks) #get task with lowest depth/lowest letter
 
             order += task
+            
+            for next_task in successors[task]:
+                depth[next_task] -= 1
 
-            for dest in succ[task]:
-                depth[dest] -= 1
-                if depth[dest] == 0:
-                    available_tasks.add(dest)
+                if depth[next_task] == 0:
+                    available_tasks.add(next_task)
             
             available_tasks.remove(task)
 
         return order
 
     def get_execution_time(self,lines, workers=5, offset=60) -> int:
-        tasks, succ, depth = self.parse(lines)
+        tasks, successors, depth = self.parse(lines)
 
         worker_end_time = [0] * workers
         task_end_time = {}
 
         available_tasks = { task for task in tasks if depth[task] == 0 }
-        task_start_time_bound = defaultdict(lambda: 0)  # lower bound for the start time of a task
+        task_start_time_bound = defaultdict(lambda: 0)  # this is the lower bound for the start time of a task
 
         while len(available_tasks) > 0:            
             next_worker = min(range(workers), key=lambda i: worker_end_time[i])
@@ -51,12 +52,13 @@ class Solution(InputAsLinesSolution):
             task_end_time = max(worker_end_time[next_worker], task_start_time_bound[task]) + offset + 1 + ord(task) - ord("A")
             worker_end_time[next_worker] = task_end_time
 
-            for dest in succ[task]:
-                depth[dest] -= 1
-                if depth[dest] == 0:
-                    available_tasks.add(dest)
+            for next_task in successors[task]:
+                depth[next_task] -= 1
+
+                if depth[next_task] == 0:
+                    available_tasks.add(next_task)
                 
-                task_start_time_bound[dest] = max(task_start_time_bound[dest], task_end_time) # +1 goes here?
+                task_start_time_bound[next_task] = max(task_start_time_bound[next_task], task_end_time) 
             
             available_tasks.remove(task)
 
@@ -64,21 +66,21 @@ class Solution(InputAsLinesSolution):
 
     #priority queue in disguise. for each destination, I add 1 to the depth
     #e.g. if A depends on B, I add 1 to depth[B]
-    #if a task has no dependencies, its depth is 0 i.e. a starter
+    #if a task has no dependencies, its depth is 0 i.e. available
     def parse(self, lines):
         tasks = set()
-        succ = defaultdict(set)  # set of successors
+        successors = defaultdict(set)  # set of successors
         depth = defaultdict(lambda: 0)
 
         for line in lines:
-            parts = line.split()
-            src = parts[1]
+            parts = line.split(" ") # Step R must be finished before step P can begin.
+            prev_task = parts[1]
             dst = parts[7]
-            tasks.update([src, dst])
+            tasks.update([prev_task, dst])
             depth[dst] += 1
-            succ[src].add(dst)
+            successors[prev_task].add(dst)
 
-        return tasks, succ, depth
+        return tasks, successors, depth
         
     def part_1(self):
         start_time = time.time()
