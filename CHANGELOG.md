@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.1.0](https://github.com/sergiorgiraldo/AdventOfCode2018/compare/v3.0.0...v3.1.0) (2024-03-01)
+
+
+### Features
+
+* till day 10 ([8dcb640](https://github.com/sergiorgiraldo/AdventOfCode2018/commit/8dcb640672588d13ae23c74cc34ce2aa341e8cd6))
+
 ## [3.0.0](https://github.com/sergiorgiraldo/AdventOfCode2018/compare/v2.0.0...v3.0.0) (2024-02-25)
 
 
