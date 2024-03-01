@@ -11,9 +11,9 @@ class Solution(InputAsStringSolution):
     _year = 2018
     _day = 8
 
-    Tree = tuple[list, list]
+    Tree = tuple[list[Any], list[int]] #first is list[Tree] but python cant handle that yet
 
-    def parse(self, node: list[int], offset: int):
+    def parse(self, node: list[int], offset: int) -> tuple[Tree, int]:
         children, metadata = [], node[offset+1]
 
         offset += 2 #skipping quantities
