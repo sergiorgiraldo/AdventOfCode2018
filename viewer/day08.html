@@ -1,0 +1,73 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 08</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/8
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+from typing import Any
+
+class Solution(InputAsStringSolution):
+    _year = 2018
+    _day = 8
+
+    Tree = tuple[list[Any], list[int]] #first is list[Tree] but python cant handle that yet
+
+    def parse(self, node: list[int], offset: int) -> tuple[Tree, int]:
+        children, metadata = [], node[offset+1]
+
+        offset += 2 #skipping quantities
+        
+        for _ in range(node[offset-2]):
+            child, offset = self.parse(node,offset)
+            children.append(child)
+
+        return (children, node[offset:offset+metadata]), offset+metadata
+
+    def sum_metadata_entries(self,tree: Tree) -> int:
+        return sum(tree[1]) + sum(self.sum_metadata_entries(node) for node in tree[0])
+
+    #if there is no children, return the sum of the metadata
+    #if there are children, iterate over them (if they exist) and return the sum of the metadata of the children
+    #to iterate, the child is the node referenced by the metadata value i.e. 1 is the first, 2 is second, etc
+    def get_rootnode_value(self, tree: Tree) -> int:
+        children, metadata = tree
+
+        if len(children) == 0:
+            return sum(metadata)
+        
+        return sum(self.get_rootnode_value(children[metadata_value-1]) 
+                   for metadata_value in metadata if 0 < metadata_value <= len(children))
+
+    def part_1(self):
+        start_time = time.time()
+
+        tree, _ = self.parse([int(chr) for chr in self.input.split(" ")], 0)
+
+        res = self.sum_metadata_entries(tree)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        tree, _ = self.parse([int(chr) for chr in self.input.split(" ")], 0)
+
+        res = self.get_rootnode_value(tree)
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
+</pre>
