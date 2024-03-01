@@ -16,7 +16,7 @@ class Marble:
 	
 	def get_previous(self, offset):
 		res = self
-            
+
 		for _ in range(offset):
 			res = res.prev_marble
                   
@@ -43,7 +43,7 @@ class Solution(InputAsStringSolution):
         scores = [0] * players
 
         for i in range(1, last_marble_value+1):
-            if i % 23 != 0:
+            if i % 23: # magic number from the puzzle
                 new_prev = cur_marble.next_marble
                 new_next = new_prev.next_marble
                                 

@@ -1,0 +1,129 @@
+# puzzle prompt: https://adventofcode.com/2018/day/10
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+from collections import defaultdict
+from functools import reduce
+
+class Point:
+	def __init__(self, x, y, vx, vy):
+		self.x = x
+		self.y = y
+		self.vx = vx
+		self.vy = vy
+            
+	def move(self):
+		self.x += self.vx
+		self.y += self.vy
+
+class Solution(InputAsLinesSolution):
+    _year = 2018
+    _day = 10
+
+    def parse(self, lines):
+        points = []
+        sky = defaultdict(lambda: 0)  # pair of coordinates to # of points
+
+        for line in lines:
+            parts = line.replace("<", ">").split(">")
+            x, y = [int(t) for t in parts[1].split(",")]
+            vx, vy = [int(t) for t in parts[3].split(",")]
+            points.append(Point(x, y, vx, vy))
+            sky[(x, y)] += 1
+
+        return points, sky
+         
+    def move_points(self, lines):
+        points, sky = self.parse(lines)
+        
+# alone point X is the one without points in the 3x3 square around it
+#    -1  0  1
+# -1  *  *  *
+#  0  *  X  *
+#  1  *  *  *
+#  to form letters all points must be connected somehow
+                
+        seconds_to_msg = 0
+        while True:
+            alone = 0
+            try:
+                for p in points:
+                    x = p.x
+                    y = p.y
+                    if sky[(x-1, y-1)] + sky[(x, y-1)] + sky[(x+1, y-1)] + sky[(x-1, y)] +  sky[(x+1, y)] + sky[(x-1, y+1)] + sky[(x, y+1)] + sky[(x+1, y+1)] == 0:
+                        alone += 1
+                        raise StopIteration
+            except StopIteration:
+                 pass
+                        
+            if alone == 0:
+                break  # no single point alone
+            
+            for p in points:
+                sky[(p.x, p.y)] -= 1
+                if sky[(p.x, p.y)] == 0:
+                    del sky[(p.x, p.y)]  # make sure we free up unused memory
+                p.move()
+                sky[(p.x, p.y)] += 1
+
+            seconds_to_msg += 1
+
+        # Find bounding box
+        min_x = reduce(lambda acc, p: min(acc, p.x), points, float("inf"))
+        max_x = reduce(lambda acc, p: max(acc, p.x), points, float("-inf"))
+        min_y = reduce(lambda acc, p: min(acc, p.y), points, float("inf"))
+        max_y = reduce(lambda acc, p: max(acc, p.y), points, float("-inf"))
+
+        print()
+
+        for y in range(min_y, max_y + 1):
+            for x in range(min_x, max_x + 1):
+                if  sky[(x, y)] > 0: 
+                    print("#", end="")
+                else:
+                    print(".", end="")
+            print()
+
+        print()
+        print("Waited %s seconds" % seconds_to_msg) 
+
+    def part_1(self):
+        start_time = time.time()
+
+        self.move_points(self.input)
+
+#....#.....###..#####......###..#....#..#####.....##....######
+#....#......#...#....#......#...#....#..#....#...#..#........#
+#....#......#...#....#......#....#..#...#....#..#....#.......#
+#....#......#...#....#......#....#..#...#....#..#....#......#.
+######......#...#####.......#.....##....#####...#....#.....#..
+#....#......#...#....#......#.....##....#..#....######....#...
+#....#......#...#....#......#....#..#...#...#...#....#...#....
+#....#..#...#...#....#..#...#....#..#...#...#...#....#..#.....
+#....#..#...#...#....#..#...#...#....#..#....#..#....#..#.....
+#....#...###....#####....###....#....#..#....#..#....#..######
+        
+        res = "HJBJXRAZ" # output from method
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = 10641 # output from pt 1
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
