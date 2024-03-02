@@ -1,0 +1,137 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 11</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/11
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+
+class Solution(InputAsStringSolution):
+    _year = 2018
+    _day = 11
+
+    def get_power_level_cell(self,x,y,serial):
+        power_level = (((x+10) * y + serial) * (x+10) // 100) % 10 - 5
+
+        return power_level
+
+    def get_power_level_3x3square(self,x,y,grid):
+        total = 0
+        for i in range(3):
+            for j in range(3):
+                total += grid[y+i][x+j]
+        return total
+
+    def build_grid(self, serial):
+        grid  = []
+        for y in range(300):
+            line = []
+            for x in range(300):
+                line.append(self.get_power_level_cell(x,y,serial))
+            grid.append(line)
+
+        return grid
+
+    def get_best_3x3square(self, serial):
+        grid = self.build_grid(serial)
+
+        power_levels = []
+        
+        for y in range(298): # 298 because the grid is 300x300
+            for x in range(298):
+                power_levels.append(self.get_power_level_3x3square(x,y,grid))
+
+        best_square = power_levels.index(max(power_levels))
+        
+        x = best_square %  298
+        y = best_square // 298
+
+        return str(x) + "," + str(y)
+
+    #https://en.wikipedia.org/wiki/Summed-area_table    
+    def compute_summed_area_table(self,x,y,grid,summed_area_table):
+        ## s(x,y) = s(x-1,y) + s(x,y-1) - s(x-1,y-1) + p(x,y)
+        ## s(x,y) =    A     +    B     -     C      + D
+        A = 0 if x-1 < 0 else summed_area_table[y][x-1]
+        B = 0 if y-1 < 0 else summed_area_table[y-1][x]
+        C = 0 if x-1 < 0 or y-1 < 0 else summed_area_table[y-1][x-1]
+        D = grid[y][x]
+        return A + B - C + D
+
+    # in the summed area table, values accumulate, so you need to remove the overlaps
+    # get by example a square of 3x3 from the summed table, letters are the power level values
+    # A B C
+    # D E F
+    # G H I
+    # I want to get the sum of the 2x2 square starting at (1,1), point E
+    # the summed tables look like
+    # A       A+B             A+B+C
+    # A+D     A+B+D+E         A+B+C+D+E+F
+    # A+D+G   A+B+D+E+G+H     A+B+C+D+E+F+G+H+I
+    # I want the sum of E+F+H+I, so from (A+B+C+D+E+F+G+H+I), get rid of (A+B+C+D+G)
+    # Thus (A+B+C+D+E+F+G+H+I) + (A) - (A+D+G) - (A+B+C)
+    # That's the equation below     
+    def sum_area_by_size(self,x,y,size,summed_area_table):
+        ## s(x,y) = s(x+size-1,y+size-1) + s(x-1,y-1) - s(x+size-1,y-1) - s(x-1,y+size-1)
+        ## s(x,y) =       A              +      B     -      C          -       D
+        A = summed_area_table[y+size-1][x+size-1]
+        B = 0 if x-1 < 0 or y-1 < 0 else summed_area_table[y-1][x-1]
+        C = 0 if y-1 < 0 else summed_area_table[y-1][x+size-1]
+        D = 0 if x-1 < 0 else summed_area_table[y+size-1][x-1]
+        return A + B - C - D
+
+    def get_best_square(self, serial):
+        grid = self.build_grid(serial)
+        summed_area_table = [[0 for _ in range(300)] for _ in range(300)]
+
+        for j in range(300):
+            for i in range(300):
+                summed_area_table[j][i] = self.compute_summed_area_table(i,j,grid,summed_area_table)
+
+        locations = []
+        power_levels = []
+        for size in range(2,301):
+            candidates = []
+            for j in range(301-size):
+                for i in range(301-size):
+                    candidates.append(self.sum_area_by_size(i,j,size,summed_area_table))
+            best = candidates.index(max(candidates))
+            x   = best  %  (301-size)
+            y   = best  // (301-size)
+            power_levels.append(candidates[best])
+            locations.append((x,y))
+
+        best = power_levels.index(max(power_levels))
+        size = best + 2
+        location = locations[best]
+
+        return str(location[0]) + "," + str(location[1]) + "," + str(size)
+    
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.get_best_3x3square(int(self.input))
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.get_best_square(int(self.input))
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
+</pre>
