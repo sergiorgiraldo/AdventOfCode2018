@@ -84,29 +84,29 @@ class Solution(InputAsLinesSolution):
     def get_first_crash(self, lines):
         self.parse(lines)
 
-        crash = []
-        while len(crash)==0:
-            for idx,cart in enumerate(self.carts):
-                next_x, next_y = self.get_next_location(cart[0],cart[1],cart[2])
-                
-                next_char = self.get_next_char(cart[2],self.rail_map[next_y][next_x],str(cart[3]))
-                
-                if self.rail_map[next_y][next_x] == "+":
-                    next_cart = (next_x, next_y, next_char, (cart[3]+1)%3)
-                else:
-                    next_cart = (next_x, next_y, next_char, cart[3])
-                
-                crash = [(any_cart[0],any_cart[1]) for any_cart in self.carts 
-                         if any_cart[0] == next_cart[0] and any_cart[1] == next_cart[1]]
-                
-                if len(crash)>0:
-                    break
-                
-                self.carts[idx] = next_cart
-            
+        crash = ()
+        while True:
+            try:
+                for i,cart in enumerate(self.carts):
+                    next_x, next_y = self.get_next_location(cart[0],cart[1],cart[2])
+                    
+                    next_char = self.get_next_char(cart[2],self.rail_map[next_y][next_x],str(cart[3]))
+                    
+                    next_cart = (next_x, next_y, next_char, 
+                                (cart[3]+1)%3 if self.rail_map[next_y][next_x] == "+" else cart[3])
+                    
+                    crash = next((any_cart for any_cart in self.carts 
+                                  if any_cart[0] == next_cart[0] and any_cart[1] == next_cart[1]), None)
+
+                    if crash: raise StopIteration
+                    
+                    self.carts[i] = next_cart
+            except StopIteration:
+                break
+
             self.carts = self.arrange_carts(self.carts)
             
-        return str(crash[0][0]) + "," + str(crash[0][1])
+        return str(crash[0]) + "," + str(crash[1])
 
     def get_last_cart(self, lines):
         self.parse(lines)
@@ -119,15 +119,13 @@ class Solution(InputAsLinesSolution):
                 next_x, next_y = self.get_next_location(cart[0],cart[1],cart[2])
 
                 next_char = self.get_next_char(cart[2],self.rail_map[next_y][next_x],str(cart[3]))
-                
-                if self.rail_map[next_y][next_x] == "+":
-                    next_cart = (next_x, next_y, next_char, (cart[3]+1)%3, False)
-                else:
-                    next_cart = (next_x, next_y, next_char, cart[3], False)
-                
-                for j, any_cart in enumerate(self.carts):
+
+                next_cart = (next_x, next_y, next_char, 
+                            (cart[3]+1)%3 if self.rail_map[next_y][next_x] == "+" else cart[3], False)
+
+                for i, any_cart in enumerate(self.carts):
                     if not any_cart[4] and any_cart[0] == next_cart[0] and any_cart[1] == next_cart[1]:
-                        self.carts[j] = (any_cart[0], any_cart[1], any_cart[2], any_cart[3], True)
+                        self.carts[i] = (any_cart[0], any_cart[1], any_cart[2], any_cart[3], True)
                         next_cart = (next_cart[0], next_cart[1], next_cart[2], next_cart[3], True)
                 
                 self.carts[idx] = next_cart

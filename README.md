@@ -38,7 +38,7 @@ leave ~/source/AdventOfCode2018/(.*)
 
 ### `./deploy.sh` 
 
-Commit to Github and make PR
+Create viewer, commit to Github and make PR
 
 #### Usage
 
