@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.0.0](https://github.com/sergiorgiraldo/AdventOfCode2018/compare/v6.0.0...v7.0.0) (2024-03-06)
+
+
+### ⚠ BREAKING CHANGES
+
+* day 14 completed
+
+### Features
+
+* day 14 completed ([b5de25c](https://github.com/sergiorgiraldo/AdventOfCode2018/commit/b5de25c752abdd66a9366f194523e2c07eece9f5))
+
 ## [6.0.0](https://github.com/sergiorgiraldo/AdventOfCode2018/compare/v5.0.0...v6.0.0) (2024-03-04)
 
 
