@@ -135,10 +135,10 @@ class Solution(InputAsLinesSolution):
         samples, _ = self.parse(lines)
         good_samples = 0
 
-        for observation in samples:
-            status_before, opcodes, status_after = observation
-            candidates = set(filter(lambda instr: instr(opcodes, status_before) == status_after, self.instructions))
-            good_samples += 1 if len(candidates) >= 3 else 0
+        for sample in samples:
+            status_before, opcodes, status_after = sample
+            valid_opcodes = set(filter(lambda instr: instr(opcodes, status_before) == status_after, self.instructions))
+            good_samples += 1 if len(valid_opcodes) >= 3 else 0
 
         return good_samples
 
