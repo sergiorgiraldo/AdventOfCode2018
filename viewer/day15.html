@@ -1,0 +1,372 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 15</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/15
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+from functools import reduce
+
+class Solution(InputAsLinesSolution):
+    _year = 2018
+    _day = 15
+
+    def parse(self,lines):
+        """Convert list of strings into list of lists, with elves/goblins replaced by tuples"""
+        map = []
+        for rowI in range(len(lines)):
+            row = lines[rowI]    
+            map.append([x for x in row])
+            for colI in range(len(row)):
+                col = row[colI]
+                if col in ["G","E"]:
+                    #Replace enemies with tuples so we can track them - (character_type, hit_points, moved_already_bool)
+                    char_tup = (col, 200, False)
+                    map[rowI][colI] = char_tup
+        return map
+
+    def print_board(self,map):
+        for row in map:
+            extra = []
+            print_row = []  #In case we append hitpoints
+            for char in row:
+                if isinstance(char,tuple):
+                    print_row.append(char[0])
+                    extra.append(str(char[1]))
+                else:
+                    print_row.append(char)
+            print("".join(print_row),"   ", " ".join(extra))
+
+    def move_character(self,map, from_row, from_col, to_row, to_col, char):
+        """Move character on grid, and increment the i value so we can tell we already moved it"""
+        map[from_row][from_col] = "."
+        map[to_row][to_col] = (char[0],char[1],True)
+        return map
+
+    def attack(self,map, row, col, enemy, damage=3):
+        """
+        Attack weakest adjacent enemy, if one is there
+        If multiple weakest enemies, attack in reading order
+        Return the modified board, and a boolean indicating whether anyone died
+        """
+
+        if not self.adjacent_enemy(map, row, col, enemy):
+            return map, False
+
+        #Create a dict of {coordinates: hp} for each adjacent enemy
+        enemies = {}
+        for coords in [(row-1,col), (row+1,col), (row,col-1), (row,col+1)]:
+            if map[coords[0]][coords[1]][0] == enemy:
+                #enemy is a tuple, (char_type, hp, already_moved_bool)
+                enemies[coords] = map[coords[0]][coords[1]][1]
+
+        #Filter to only the enemies with minimum hp
+        min_hp = min(enemies.values())
+        enemies = [x for x in enemies if enemies[x]==min_hp]
+
+        #Now we have a list of coordinates, we can sort to get reading order, then take the first to get our enemy
+        enemies.sort()
+        coords = enemies[0]
+
+        enemy = map[coords[0]][coords[1]]
+        enemy_pts = enemy[1] - damage
+        enemy_tup = (enemy[0], enemy_pts, enemy[2])
+
+        #Check for killed
+        if enemy_pts <= 0:
+            map[coords[0]][coords[1]] = "."
+            return map, True
+        else:
+            map[coords[0]][coords[1]] = enemy_tup
+            return map, False
+
+
+    def adjacent_enemy(self,map, rowI, colI, enemy):
+        """Check for enemy in adjacent square, not diagonals"""
+        #    X
+        #  X O X
+        #    X
+        if any(x[0]==enemy for x in [map[rowI+1][colI], map[rowI-1][colI], map[rowI][colI+1], map[rowI][colI-1]]):
+            return True
+        return False
+
+    def get_best_move(self,best_moves):
+        """
+        Takes a list of tuples of
+        (first_move, number_of_moves, tile_coordinates), which might look like -
+        ((10, 12), 8, (27, 25))
+        ((10, 12), 7, (11, 14))
+        And filters/sorts them to satisfy all the conditions
+        """
+
+        if not best_moves:
+            return None
+
+        #First condition - fewest number of moves away
+        min_steps = min([x[1] for x in best_moves])
+        best_moves = [x for x in best_moves if x[1]==min_steps]
+
+        #Second condition - if tie, choose the first tile in reading order
+        best_moves.sort(key = lambda x:x[2])
+        best_moves = [x for x in best_moves if x[2]==best_moves[0][2]]
+
+        #Third condition - if tie, take the first step in reading order
+        best_moves.sort(key = lambda x:x[0])
+        best_moves = [x for x in best_moves if x[0]==best_moves[0][0]]
+
+        return best_moves[0][0]
+
+    def count_characters(self,map):
+        seen = {"G":0,"E":0}
+        for row in map:
+            for col in row:
+                if col[0] in ["G","E"]:
+                    seen[col[0]]+=1
+        return seen
+
+    def bfs_move(self,map, rowI, colI, hero, enemy):
+        #If an enemy is located adjacent to our current location - no move!
+        if self.adjacent_enemy(map, rowI, colI, enemy):
+            return None
+
+        first_moves = [(rowI+1,colI),(rowI-1,colI),(rowI,colI-1),(rowI,colI+1)]
+        #Filter down to valid first moves - must be a '.' there
+        first_moves = [x for x in first_moves if map[x[0]][x[1]]=="."]
+
+        #Keep the list of tuples nearest tiles we've found, in format -
+        #(first_move, number_of_moves, tile_coordinates)
+        #At the end we'll need to use all these values to find the proper move
+        best_moves = []
+
+        for move in first_moves:
+            r,c = move
+
+            #We might immediately have an adjacent enemy and not need to search further
+            if self.adjacent_enemy(map, r, c, enemy):
+                best_moves.append((move, 1, move))
+                continue
+
+            #We'll need to keep track of two things -
+            #seen_coordinates - the tiles we've already visited
+            #stack - the "new" tiles accessible from the current furthest points
+            seen_coordinates = {(rowI,colI),(r,c)}
+            stack = [(r+1,c),(r-1,c),(r,c-1),(r,c+1)]
+            #Filter stack to only include "." tiles, which we haven't already seen
+            stack = [x for x in stack if map[x[0]][x[1]]=="." and (x[0],x[1]) not in seen_coordinates]
+
+            #Now do the search -
+
+            i=1  #Already have moved one tile at this point
+            run = True
+            while run:
+                i+=1
+
+                #Keep track of the new tiles here
+                new_stack = []
+
+                #Loop through and look for new tiles to add
+                for tile in stack:
+                    if tile in seen_coordinates:
+                        continue
+
+                    seen_coordinates.add(tile)
+                    r,c = tile
+
+                    if self.adjacent_enemy(map, r, c, enemy):
+                        best_moves.append((move,i,(r,c)))
+                        #We want to complete this iteration to find all other reachable tiles at the same distance
+                        run = False
+                        continue
+
+                    #Add all newly accessible tiles to stack
+                    new_tiles = [(r+1,c),(r-1,c),(r,c-1),(r,c+1)]
+                    new_stack += [x for x in new_tiles if map[x[0]][x[1]]=="." and (x[0],x[1]) not in seen_coordinates]
+
+                stack = list(set(new_stack))
+                #We might also need to end at this point if we have no more newly accessible tiles
+                if not stack:
+                    run = False
+
+        #Take our list of the best_moves from each starting point that we generated, and find the one move we'll take
+        return self.get_best_move(best_moves)
+
+    def score_game(self,map, rounds):
+        pts = 0
+        for _,row in enumerate(map):
+            for _,col in enumerate(row):
+                if col[0] in ["G","E"]:
+                    pts+=col[1]
+        return rounds*pts
+
+    def reset_moved_bools(self,map):
+        """Reset the third value in our character tuples, which tracks whether they've moved in a round"""
+        for rowI,row in enumerate(map):
+            for colI,col in enumerate(row):
+                if col[0] in ["G","E"]:
+                    char_tup = (col[0],col[1],False)
+                    map[rowI][colI] = char_tup
+        return map
+
+    def battle_pt1(self,lines, print=False):
+        map = self.parse(lines)
+
+        rounds = 0
+
+        while True:
+            #Count the current number of each character type
+            #We can use this to determine if the game has ended in the middle or end of a round
+            counts = self.count_characters(map)
+
+            for rowI,row in enumerate(map):
+                for colI,col in enumerate(row):
+                    char = map[rowI][colI]
+                    if isinstance(char, tuple):
+
+                        #Indicates we already moved it this round
+                        if char[2]:
+                            continue
+
+                        r,c = rowI,colI  #Keep track of our current coordinates in case we move
+                        hero = char[0]
+                        enemy = "G" if hero=="E" else "E"
+
+                        counts[hero]-=1
+
+                        move_to = self.bfs_move(map, rowI, colI, hero, enemy)
+                        if move_to:
+                            r,c = move_to  #Need to update our current coordinates for the impending attack
+                            map = self.move_character(map, rowI, colI, r, c, char)
+
+                        map, death = self.attack(map, r, c, enemy)
+                        if death:
+                            #Check to see if it's over - all of one side dead
+                            current_counts = self.count_characters(map)
+                            game_over = any(x==0 for x in current_counts.values())
+                            #If game is over, we need to see if the round is complete or not
+                            if game_over:
+                                #Means we ended midround
+                                if counts[hero]>0:
+                                    final_score = self.score_game(map, rounds)
+                                #Otherwise round is complete- add 1 to rounds when calculating
+                                else:
+                                    rounds+=1
+                                    final_score = self.score_game(map, rounds)
+                                if print:
+                                    print("GAME ENDED",rounds)
+                                    self.print_board(map)
+
+                                return final_score
+
+            #Reset the variable that tracks whether a character has moved in a round
+            map = self.reset_moved_bools(map)
+
+            rounds += 1
+
+            if print:
+                print(rounds)
+                self.print_board(map)
+
+    def battle_pt2_loop(self,lines, damage_dict, print=False):
+        map = self.parse(lines)
+
+        rounds = 0
+
+        while True:
+            #Count the current number of each character type
+            #We can use this to determine if the game has ended in the middle or end of a round
+            counts = self.count_characters(map)
+
+            for rowI,row in enumerate(map):
+                for colI,_ in enumerate(row):
+                    char = map[rowI][colI]
+                    if isinstance(char, tuple):
+
+                        #Indicates we already moved it this round
+                        if char[2]:
+                            continue
+
+                        r,c = rowI,colI  #Keep track of our current coordinates in case we move
+                        hero = char[0]
+                        enemy = "G" if hero=="E" else "E"
+
+                        counts[hero]-=1
+
+                        move_to = self.bfs_move(map, rowI, colI, hero, enemy)
+                        if move_to:
+                            r,c = move_to  #Need to update our current coordinates for the impending attack
+                            map = self.move_character(map, rowI, colI, r, c, char)
+
+                        damage = damage_dict[hero]
+                        map, death = self.attack(map, r, c, enemy, damage)
+                        if death and enemy=="E":
+                            #FAILED
+                            return False
+                        #If goblin death, same logic as before
+                        elif death:
+                            #Check to see if it's over - all of one side dead
+                            current_counts = self.count_characters(map)
+                            game_over = any(x==0 for x in current_counts.values())
+                            #If game is over, we need to see if the round is complete or not
+                            if game_over:
+                                #Means we ended midround
+                                if counts[hero]>0:
+                                    final_score = self.score_game(map, rounds)
+                                #Otherwise round is complete- add 1 to rounds when calculating
+                                else:
+                                    rounds+=1
+                                    final_score = self.score_game(map, rounds)
+                                if print:
+                                    print("GAME ENDED",rounds)
+                                    self.print_board(map)
+
+                                return final_score
+
+            #Reset the variable that tracks whether a character has moved in a round
+            map = self.reset_moved_bools(map)
+
+            rounds += 1
+
+            if print:
+                print(rounds)
+                self.print_board(map)
+
+    def battle_pt2(self,map, print=False):
+        score = False
+        damage_dict = {"G":3, "E":3}
+        while not score:
+            damage_dict["E"] += 1
+            score = self.battle_pt2_loop(map, damage_dict, print)
+
+        if print:
+            print("boost: ", damage_dict["E"])
+        
+        return score
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.battle_pt1(self.input)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.battle_pt2(self.input)
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
+</pre>
