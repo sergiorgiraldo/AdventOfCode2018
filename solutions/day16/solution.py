@@ -6,7 +6,6 @@ sys.path.insert(0,"..")
 
 from base.advent import *
 import re
-
 class Interpreter:
     def addr(opcodes, status):
         A, B, C = opcodes[1:]
