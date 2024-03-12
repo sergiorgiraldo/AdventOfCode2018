@@ -25,7 +25,7 @@ class Solution(InputAsLinesSolution):
         if y > ymax:
             return True
         
-        if m[x,y] != ".":
+        if m[x,y] != ".": #water flows
             return m[x,y] == "|"
 
         m[x,y] = "|"
@@ -36,9 +36,9 @@ class Solution(InputAsLinesSolution):
         if (d != 1 and self.flow(m,ymax,x-1,y,-1,print)) | (d != -1 and self.flow(m,ymax,x+1,y,1,print)):
             return True
 
-        if d == 0:
-            self.fill(m,x,y,-1)
-            self.fill(m,x+1,y,1)
+        if d == 0: #water settles ...
+            self.fill(m,x,y,-1)     # to the left
+            self.fill(m,x+1,y,1)    # to the right
 
         return False
 
