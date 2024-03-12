@@ -1,0 +1,132 @@
+# puzzle prompt: https://adventofcode.com/2018/day/18
+
+import time
+import sys
+sys.path.insert(0, "..")
+
+from base.advent import *
+from collections import Counter
+
+class Solution(InputAsLinesSolution):
+    _year = 2018
+    _day = 18
+
+    def grow(self, field: list[str], times: int) -> list[str]:
+        for _ in range(times):
+            new_field = []
+
+            for row in range(len(field)):
+                state = ""
+                for col in range(len(field[0])):
+                    
+                    # * * *
+                    # * 0 *
+                    # * * *
+
+                    positions_around = [
+                                        (row-1, col-1),
+                                        (row-1, col),
+                                        (row-1, col+1),
+                                        (row,   col-1),
+                                        (row,   col+1),
+                                        (row+1, col-1),
+                                        (row+1, col),
+                                        (row+1, col+1)]
+                    trees, yards = 0, 0
+
+                    for new_row, new_col in positions_around:
+                        #inbound check
+                        if new_row < 0 or new_row >= len(field) or new_col < 0 or new_col >= len(field[0]):
+                            continue
+
+                        match field[new_row][new_col]:
+                            case "|": trees += 1
+                            case "#": yards += 1
+                    
+                    match field[row][col]:
+                        case ".": state += "|" if trees >= 3              else "."
+                        case "|": state += "#" if yards >= 3              else "|"
+                        case "#": state += "#" if yards > 0 and trees > 0 else "."
+                
+                new_field.append(state)
+            
+            field = new_field
+
+        return field
+
+    def get_resource_value(self, field: list[str]) -> int:
+        counts = Counter(tile for row in field for tile in row)
+        return counts["#"] * counts["|"]
+
+    def grow_for_10mins(self, field, howlong = 10):
+        step1 = self.get_resource_value(self.grow(field, howlong))
+        return step1
+
+    # tried to see if it is linear; it is not (commented below)
+    # i tried to find the cycle in the resource_value, also dead end
+    # then the field probably repeats itself, bingo
+    # from 470 -> 526 -> 582 -> (+56) ...
+    def grow_till_today(self, field):
+        # ****** dead end
+        # base = 0
+        # for i in range(1000):
+        #     field = self.grow(field, 1)
+        #     curr = self.get_resource_value(field)
+        #     print(i, curr - base)
+        #     base = curr
+        # ****** dead end
+
+        # ****** gotcha
+        # a,b,c="","",""
+        # for i in range(600):
+        #     field = self.grow(field, 1)
+        #     encoded = self.encode(field)
+        #     if i == 470: a = encoded   
+        #     if i == 526: b = encoded   
+        #     if i == 582: c = encoded               
+        # print(a)
+        # assert(a==b)
+        # assert(b==c)
+        # ****** gotcha
+
+        states = {}
+
+        for i in range(1000000000):
+            field = self.grow(field, 1)
+            encoded = self.encode(field)
+
+            if encoded in states:
+                offset = (1000000000 - states[encoded] - 1) % (i-states[encoded])
+                field = self.grow(field, offset)
+                break
+            states[encoded] = i
+
+        return self.get_resource_value(field)
+
+    def encode(self, state):
+        return "".join(["".join(row) for row in state])
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.grow_for_10mins(self.input)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.grow_till_today(self.input)
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == "__main__":
+    solution = Solution()
+
+    solution.part_1()
+
+    solution.part_2()
