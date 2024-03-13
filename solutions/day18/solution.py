@@ -6,6 +6,7 @@ sys.path.insert(0, "..")
 
 from base.advent import *
 from collections import Counter
+import hashlib
 
 class Solution(InputAsLinesSolution):
     _year = 2018
@@ -58,9 +59,8 @@ class Solution(InputAsLinesSolution):
         counts = Counter(tile for row in field for tile in row)
         return counts["#"] * counts["|"]
 
-    def grow_for_10mins(self, field, howlong = 10):
-        step1 = self.get_resource_value(self.grow(field, howlong))
-        return step1
+    def grow_for_10mins(self, field):
+        return self.get_resource_value(self.grow(field, 10))
 
     # tried to see if it is linear; it is not (commented below)
     # i tried to find the cycle in the resource_value, also dead end
@@ -93,13 +93,13 @@ class Solution(InputAsLinesSolution):
 
         for i in range(1000000000):
             field = self.grow(field, 1)
-            encoded = self.encode(field)
+            seen = self.encode(field)
 
-            if encoded in states:
-                offset = (1000000000 - states[encoded] - 1) % (i-states[encoded])
+            if seen in states:
+                offset = (1000000000 - states[seen] - 1) % (i-states[seen])
                 field = self.grow(field, offset)
                 break
-            states[encoded] = i
+            states[seen] = i
 
         return self.get_resource_value(field)
 
