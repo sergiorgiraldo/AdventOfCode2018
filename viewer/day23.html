@@ -1,0 +1,81 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 23</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/23
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+import re
+from z3 import If, Int, Optimize
+
+class Solution(InputAsLinesSolution):
+    _year = 2018
+    _day = 23
+
+    def get_manhattan_distance(self, point1, point2):
+        return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1]) + abs(point1[2] - point2[2])
+
+    def parse(self, lines):
+        pattern = re.compile(r"^pos=<([-]?\d+),([-]?\d+),([-]?\d+)>, r=(\d+)$")
+        nanobots = []
+
+        for line in lines:
+            x, y, z, r = map(int, pattern.match(line.strip()).groups())
+
+            nanobots.append((x, y, z, r))
+
+        return nanobots
+
+    def get_nanobots_in_range(self, lines):
+        nanobots = self.parse(lines)
+        
+        max_range = max(nanobots, key=lambda nanobot: nanobot[3])
+        
+        return len([nanobot for nanobot in nanobots 
+                    if self.get_manhattan_distance(max_range, nanobot) <= max_range[3]])
+
+    #z3 is f*ck1ng great
+    def get_closest_to_nanobots(self, lines):
+        def abs(x):
+            return If(x >= 0,x,-x)
+
+        nanobots = self.parse(lines)
+
+        x,y,z,opt = Int("x"), Int("y"), Int("z"), Optimize()
+
+        opt.maximize(sum(If(abs(x-x1) + abs(y-y1) + abs(z-z1) <= rng, 1, 0) for x1,y1,z1,rng in nanobots))
+        opt.minimize(abs(x) + abs(y) + abs(z))
+        opt.check()
+
+        best_distance = opt.model().eval(abs(x) + abs(y) + abs(z))
+
+        return best_distance.as_long()
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.get_nanobots_in_range(self.input)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.get_closest_to_nanobots(self.input)
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
+</pre>
