@@ -1,11 +1,15 @@
-# puzzle prompt: https://adventofcode.com/2018/day/19
+<style>pre{font-size: large;}</style>
+<h1>Day 21</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/21
 
 import time
 import sys
 sys.path.insert(0,"..")
 
 from base.advent import *
-import math
+import itertools
+from collections import deque
 
 class Interpreter:
     def addr(opcodes, status):
@@ -103,11 +107,17 @@ class Interpreter:
         result = status.copy()
         result[C] = 1 if status[A] == status[B] else 0
         return result
-
+    
+    # Optimize the program using the shri instruction, shift-right register, see below
+    def shri(opcodes, status):
+        A, B, C = opcodes
+        result = status.copy()
+        result[C] = status[A] >> B
+        return result
 
 class Solution(InputAsLinesSolution):
     _year = 2018
-    _day = 19
+    _day = 21
 
     instructions = {"addr":Interpreter.addr, 
                     "addi":Interpreter.addi, 
@@ -124,10 +134,55 @@ class Solution(InputAsLinesSolution):
                     "gtrr":Interpreter.gtrr, 
                     "eqir":Interpreter.eqir, 
                     "eqri":Interpreter.eqri, 
-                    "eqrr":Interpreter.eqrr}
+                    "eqrr":Interpreter.eqrr,
+                    "shri":Interpreter.shri}
+    
+    # per the puzzle I could feed values into register 0, run the program, 
+    # and write some code to kill it off when I think I reached an endless loop. 
+    # instead, I looked through the input, I checked what instructions touch register 0. 
+    # in my input, it is instruction 28: 
+    #   eqrr 5 0 3 | r3 = 1 if (r5 == r0) else 0
+    # therefore, I can execute instructions until I get to #28, 
+    # then take the value of register 5 , I would have matched register 0 and ended.
+    # also, see diassemble.txt, there is a cycle between 17 and 27 which makes it run forever
+    # loop test is 256*(d + 1) > a, i.e, find the smallest d 
+    # it can be simplified to a = a >> 8, where >> is right shift operator (shri)
+    # then i break the loop setting the ip to 7 in line 18 (same as line 27)
 
-    #little bit different from day 16, there all instructions were by index
-    #here I have the instruction name
+    def run_program(self, lines):
+        index, program = self.parse(lines)
+        registers = [0]*6
+        vals = []
+        ip = registers[index]
+
+        halt_instruction = 28
+        halt_register = 5
+
+        program[17] = ("shri", [1, 8, 1]) #a >> 8
+        program[18] = ("seti", [7, 0, 4]) #r4 -> ip; goto 8 (after assigning I add 1 to ip)
+
+        halting_values = set()
+        stale = 0
+        while True:
+            ip = registers[index]
+            
+            if ip < 0 or ip >= len(program):
+                break
+            
+            if ip == halt_instruction:
+                if registers[halt_register] not in halting_values:
+                    vals.append(registers[halt_register])
+                    halting_values.add(registers[halt_register])
+                    stale = 0
+                else:
+                    if (stale := stale + 1) > 10: break
+
+            instr_name, params = program[ip]
+            registers = self.instructions[instr_name](params, registers)		
+            registers[index] += 1
+
+        return vals
+
     def parse(self, lines):
         index = int(lines[0].split(" ")[1])
 
@@ -138,53 +193,12 @@ class Solution(InputAsLinesSolution):
             program.append((parts[0], params))
 
         return index, program
-
-    def run_program(self, lines):
-        index, program = self.parse(lines)
-        registers = [0]*6
-
-        ip = registers[index]
-
-        while ip >= 0 and ip < len(program):   
-            instr_name, params = program[ip]
-            
-            registers = self.instructions[instr_name](params, registers)
-            
-            registers[index] += 1
-
-            ip = registers[index]
-
-        return registers[0]
-
-    #running the program takes forever, needs to diassemble
-    #see diassemble.txt
-    def run_program2(self):
-        # a = 0
-        # c = 10551428
-        # for b in range(1, c+1):
-        #     for e in range(1, c+1):
-        #         if b * e == c:
-        #             a += b
-        # res = a
-
-        # also the diassembled code above took forever to solve 
-        # boils down to find all divisors of 10551428 and sum them, so ...
-        def find_divisors(n):
-            large_divisors = []
-            for i in range(1, int(math.sqrt(n) + 1)):
-                if n % i == 0:
-                    yield i
-                    if i*i != n:
-                        large_divisors.append(n / i)
-            for divisor in reversed(large_divisors):
-                yield divisor
         
-        return int(sum(list(find_divisors(10551428))))
-
     def part_1(self):
         start_time = time.time()
 
-        res = self.run_program(self.input)
+        gen = self.run_program(self.input)
+        res = gen[0]
 
         end_time = time.time()
 
@@ -192,8 +206,9 @@ class Solution(InputAsLinesSolution):
 
     def part_2(self):
         start_time = time.time()
-       
-        res = self.run_program2()
+
+        gen = self.run_program(self.input)
+        res = gen[len(gen)-1]
 
         end_time = time.time()
 
@@ -205,3 +220,4 @@ if __name__ == '__main__':
     solution.part_1()
     
     solution.part_2()
+</pre>

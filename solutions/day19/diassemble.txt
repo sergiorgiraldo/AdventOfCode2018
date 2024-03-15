@@ -2,40 +2,40 @@
 
 0 1 2 3 4  5 6
 a b c d e ip g = 0
-                                                                        int a = 0;
- 0 addi 5 16 5     ip += 16             goto L1                         int c = 10551428;
- 1 seti 1 9 1       b  = 9          L8: b = 9                           for (int b = 1; b <= c; b++) {
- 2 seti 1 5 4       e  = 1          L7: e = 1                               for (int e = 1; e <= c; e++) {
- 3 mulr 1 4 3       d  = b * e      L5: d = b * e           
- 4 eqrr 3 2 3       d  = d == c         if (b * e == c)                         if (b * e == c)
- 5 addr 3 5 5      ip  = ip + d         then goto L2        
- 6 addi 5 1 5      ip += 1              else goto L3
- 7 addr 1 0 0       a += b          L2: a += b                                      a += b;
- 8 addi 4 1 4       e += 1          L3: e++
- 9 gtrr 4 2 3       d  = e > c          if (e > c)
-10 addr 5 3 5      ip += d              then goto L4
-11 seti 2 4 5      ip  = 2              else goto L5                        }
-12 addi 1 1 1       b += 1          L4: b++
-13 gtrr 1 2 3       d  = b > c          if (b > c)
-14 addr 3 5 5      ip += d              then goto L6
-15 seti 1 9 5      ip  = 1              else goto L7                    }
-16 mulr 5 5 5      ip *= ip         L6: HALT (ip out of bounds)         return a;
-17 addi 2 2 2       c += 2          L1: c = 2
-18 mulr 2 2 2       c *= c              c = 2^2
-19 mulr 5 2 2       c *= ip             c = 2^2 * 19
-20 muli 2 11 2      c *= 11             c = 2^2 * 19 * 11 = 836
-21 addi 3 8 3       d += 8              d = 8
-22 mulr 3 5 3       d *= ip             d = 8 * 22
-23 addi 3 16 3      d += 16             d = 8 * 22 + 16
-24 addr 2 3 2       c += d              c = 836 + 8 * 22 + 16 = 1028
-25 addr 5 0 5      ip += a              if (a == 1) then goto L9
-26 seti 0 7 5      ip  = 0              else goto L8
-27 setr 5 3 3       d  = ip         L9: d = 27
-28 mulr 3 5 3       d *= ip             d = 27*28
-29 addr 5 3 3       d += ip             d = 27*28 + 29
-30 mulr 5 3 3       d *= ip             d = (27*28 + 29) * 30
-31 muli 3 14 3      d *= 14             d = (27*28 + 29) * 30 * 14
-32 mulr 3 5 3       d *= ip             d = (27*28 + 29) * 30 * 14 * 32 = 10550400
-33 addr 2 3 2       c += d              c = 1028 + 10550400 = 10551428
-34 seti 0 1 0       a  = 0              a = 0
-35 seti 0 6 5      ip  = 0              goto L8
+                |                  |                                |    int a = 0;
+ 0 addi 5 16 5  |   ip += 16       |      goto L1                   |      int c = 10551428;
+ 1 seti 1 9 1   |    b  = 9        |  L8: b = 9                     |      for (int b = 1; b <= c; b++) {
+ 2 seti 1 5 4   |    e  = 1        |  L7: e = 1                     |          for (int e = 1; e <= c; e++) {
+ 3 mulr 1 4 3   |    d  = b * e    |  L5: d = b * e                 |
+ 4 eqrr 3 2 3   |    d  = d == c   |      if (b * e == c)           |              if (b * e == c)
+ 5 addr 3 5 5   |   ip  = ip + d   |      then goto L2              | 
+ 6 addi 5 1 5   |   ip += 1        |      else goto L3              |
+ 7 addr 1 0 0   |    a += b        |  L2: a += b                    |                  a += b;
+ 8 addi 4 1 4   |    e += 1        |  L3: e++                       |
+ 9 gtrr 4 2 3   |    d  = e > c    |      if (e > c)                | 
+10 addr 5 3 5   |   ip += d        |      then goto L4              |
+11 seti 2 4 5   |   ip  = 2        |      else goto L5              |           }
+12 addi 1 1 1   |    b += 1        |  L4: b++                       |
+13 gtrr 1 2 3   |    d  = b > c    |      if (b > c)                |
+14 addr 3 5 5   |   ip += d        |      then goto L6              |
+15 seti 1 9 5   |   ip  = 1        |      else goto L7              |      }
+16 mulr 5 5 5   |   ip *= ip       |  L6: HALT (ip out of bounds)   |     return a;
+17 addi 2 2 2   |    c += 2        |  L1: c = 2
+18 mulr 2 2 2   |    c *= c        |      c = 2^2
+19 mulr 5 2 2   |    c *= ip       |      c = 2^2 * 19
+20 muli 2 11 2  |    c *= 11       |      c = 2^2 * 19 * 11 = 836
+21 addi 3 8 3   |    d += 8        |      d = 8
+22 mulr 3 5 3   |    d *= ip       |      d = 8 * 22
+23 addi 3 16 3  |    d += 16       |      d = 8 * 22 + 16
+24 addr 2 3 2   |    c += d        |      c = 836 + 8 * 22 + 16 = 1028
+25 addr 5 0 5   |   ip += a        |      if (a == 1) then goto L9
+26 seti 0 7 5   |   ip  = 0        |      else goto L8
+27 setr 5 3 3   |    d  = ip       |  L9: d = 27
+28 mulr 3 5 3   |    d *= ip       |      d = 27*28
+29 addr 5 3 3   |    d += ip       |      d = 27*28 + 29
+30 mulr 5 3 3   |    d *= ip       |      d = (27*28 + 29) * 30
+31 muli 3 14 3  |    d *= 14       |      d = (27*28 + 29) * 30 * 14
+32 mulr 3 5 3   |    d *= ip       |      d = (27*28 + 29) * 30 * 14 * 32 = 10550400
+33 addr 2 3 2   |    c += d        |      c = 1028 + 10550400 = 10551428
+34 seti 0 1 0   |    a  = 0        |      a = 0
+35 seti 0 6 5   |   ip  = 0        |      goto L8

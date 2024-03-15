@@ -1,0 +1,78 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 20</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/20
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+
+class Solution(InputAsStringSolution):
+    _year = 2018
+    _day = 20
+
+    def find_doors(self, regex):
+        directions = { # direction vectors
+            "N": (0, -1),
+            "S": (0, 1),
+            "W": (-1, 0),
+            "E": (1, 0)
+        }
+
+        x = y = 0
+        positions = [(0, 0)]  # stack of positions, to keep track when nesting
+        distances = {(0, 0): 0}  # shortest distances for each room
+        max_distance = 0
+
+        for chr in regex:
+            if chr in "NSWE":               #move around
+                direction = directions[chr]
+
+                prev_distance = distances[(x, y)]
+                
+                x += direction[0]
+                y += direction[1]
+                
+                distances[(x, y)] = min(distances.get((x, y), float("inf")), prev_distance + 1)
+                
+                max_distance = max(max_distance, distances[(x, y)])
+
+            elif chr == "(":                #start branching, store position where you branch
+                positions.append((x, y))    
+            
+            elif chr == "|":                #go back to position right before branching
+                x, y = positions[-1]        
+            
+            elif chr == ")":                #end branching, go back to position right before branching
+                positions.pop()
+                x, y == positions[-1]       
+
+        return max_distance, len([x for x in distances.values() if x >= 1000])
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.find_doors(self.input)[0]
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.find_doors(self.input)[1]
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+    
+    solution.part_2()
+</pre>
