@@ -1,0 +1,188 @@
+<style>pre{font-size: large;}</style>
+<h1>Day 24</h1>
+<pre>
+# puzzle prompt: https://adventofcode.com/2018/day/24
+
+import time
+import sys
+sys.path.insert(0,"..")
+
+from base.advent import *
+import re
+
+#echoes from day 22 , 2017
+
+class Group:
+    def __init__(self, num_of_units, hit_points, attack_damage, attack_type, initiative, immune_to, weak_to, index=None, camp=None, boost=0):
+        self.num_of_units = num_of_units
+        self.num_of_alive_units = num_of_units
+
+        self.hit_points = hit_points
+        self.attack_damage = attack_damage
+        self.attack_type = attack_type
+        self.initiative = initiative
+        self.immune_to = immune_to
+        self.weak_to = weak_to
+
+        self.index = index
+        self.camp = camp
+        self.attacking = None
+        self.attacked_by = None
+        self.boost = boost
+
+    def effective_power(self):
+        return self.num_of_alive_units * (self.attack_damage + self.boost)
+
+class Solution(InputAsLinesSolution):
+    _year = 2018
+    _day = 24
+
+    def parse(self, lines):
+        pattern = re.compile(
+            r"^(\d+) units each with (\d+) hit points (\([a-z,; ]+\) )?with an attack that does (\d+) ([a-z]+) damage at initiative (\d+)$")
+        groups = []
+        index = 0
+        camp = 0
+
+        for line in lines:
+            if not re.match("^\d", line):
+                if line == "Immune System:":
+                    camp = 0
+                elif line == "Infection:":
+                    camp = 1
+                continue
+
+            re_groups = pattern.match(line).groups()
+
+            num_of_units = int(re_groups[0])
+            hit_points = int(re_groups[1])
+            description = re_groups[2]
+            attack_damage = int(re_groups[3])
+            attack_type = re_groups[4]
+            initiative = int(re_groups[5])
+
+            immune_to = set()
+            weak_to = set()
+            if description is not None:
+                for part in description[1:-2].split("; "):
+                    effect, types = part.split(" to ")
+                    if effect == "immune":
+                        immune_to.update(types.split(", "))
+                    else:  # effect == "weak"
+                        weak_to.update(types.split(", "))
+
+            groups.append(Group(num_of_units, hit_points, attack_damage,
+                          attack_type, initiative, immune_to, weak_to, index, camp=camp))
+            index += 1
+
+        return groups
+
+    def get_damage(self, attacking_group, defending_group):
+        if attacking_group.attack_type in defending_group.immune_to:
+            return 0
+        elif attacking_group.attack_type in defending_group.weak_to:
+            return 2 * attacking_group.effective_power()
+        else:
+            return attacking_group.effective_power()
+
+    def battle(self, groups, boost=0):
+        for group in groups:
+            group.num_of_alive_units = group.num_of_units
+            if group.camp == 0:
+                group.boost = boost
+
+        while any(group.camp == 0 for group in groups) and any(group.camp == 1 for group in groups):
+            # check if damage is lower than the hp and deaths stopped happening
+            stale = True
+
+            for group in groups:
+                group.attacking = None
+                group.attacked_by = None
+
+            # target selection
+            for selecting_group in sorted(groups, key=lambda g: (-g.effective_power(), -g.initiative)):
+                enemies = [g for g in groups if g.camp !=
+                           selecting_group.camp and g.attacked_by is None]
+                if len(enemies) == 0:
+                    continue
+
+                best_target = max(enemies, key=lambda g: (self.get_damage(selecting_group, g), g.effective_power(), g.initiative))
+                
+                if self.get_damage(selecting_group, best_target) > 0:
+                    selecting_group.attacking = best_target
+                    best_target.attacked_by = selecting_group
+
+            # attacking phase
+            for group in sorted(groups, key=lambda g: -g.initiative):
+                if group.num_of_alive_units > 0 and group.attacking is not None:
+                    attacked = group.attacking
+                    damage = self.get_damage(group, attacked)
+                    num_of_killed_units = min(attacked.num_of_alive_units, damage // attacked.hit_points)
+                    
+                    stale = False if num_of_killed_units > 0 else stale
+                    
+                    attacked.num_of_alive_units = attacked.num_of_alive_units - num_of_killed_units
+
+            # remove groups with 0 units left
+            groups = [group for group in groups if group.num_of_alive_units > 0]
+
+            if stale: groups = [group for group in groups if group.camp == 1] # infection wins
+            
+        return groups
+
+    def get_survivors(self, lines):
+        groups = self.parse(lines)
+
+        groups_after = self.battle(groups)
+
+        return sum(g.num_of_alive_units for g in groups_after)
+
+    def get_survivors_after_boost(self, lines):
+        groups = self.parse(lines)
+
+        candidate_boost = 999_999_999   # initialize with an impossible value
+        min_boost       = 1             # if boost < min_boost, immune system loses for sure
+        max_boost       = None          # if boost >= max_boost, immune system wins for sure
+
+        # Binary search for the smallest boost that makes the immune system win
+        while max_boost is None or min_boost < max_boost:
+            candidate_boost = 2 * min_boost if max_boost is None else (max_boost + min_boost)//2
+
+            groups_after = self.battle(groups, candidate_boost)
+
+            if list(groups_after)[0].camp == 0:
+                max_boost = candidate_boost  # immune system won
+            else:
+                min_boost = candidate_boost + 1
+
+        groups_after = self.battle(groups, candidate_boost)
+
+        return sum(group.num_of_alive_units for group in groups_after)
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.get_survivors(self.input)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+
+        res = self.get_survivors_after_boost(self.input)
+
+        end_time = time.time()
+
+        self.solve("2", res, (end_time - start_time))
+
+
+if __name__ == '__main__':
+    solution = Solution()
+
+    solution.part_1()
+
+    solution.part_2()
+
+</pre>
