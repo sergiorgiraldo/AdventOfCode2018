@@ -34,7 +34,11 @@ class Solution(InputAsLinesSolution):
         return len([nanobot for nanobot in nanobots 
                     if self.get_manhattan_distance(max_range, nanobot) <= max_range[3]])
 
-    #z3 is f*ck1ng great
+    #the problem is to find the point where we have more bots in range, condition I below
+    #from this set, pick the one closest to the origin, condition II below
+    #one could write this by hand picking a starting good point and
+    #testing a bunch of points around it (see optimize.manual.py)
+    #z3 is f*ck1ng great, it does it for you :)
     def get_closest_to_nanobots(self, lines):
         def abs(x):
             return If(x >= 0,x,-x)
@@ -43,8 +47,11 @@ class Solution(InputAsLinesSolution):
 
         x,y,z,opt = Int("x"), Int("y"), Int("z"), Optimize()
 
+        # condition I
         opt.maximize(sum(If(abs(x-x1) + abs(y-y1) + abs(z-z1) <= rng, 1, 0) for x1,y1,z1,rng in nanobots))
+        # condition II
         opt.minimize(abs(x) + abs(y) + abs(z))
+
         opt.check()
 
         best_distance = opt.model().eval(abs(x) + abs(y) + abs(z))
