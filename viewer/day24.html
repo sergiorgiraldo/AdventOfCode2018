@@ -12,8 +12,10 @@ import re
 
 #echoes from day 22 , 2017
 
+IMMUNE_     = 0
+INFECTION_  = 1
 class Group:
-    def __init__(self, num_of_units, hit_points, attack_damage, attack_type, initiative, immune_to, weak_to, index=None, camp=None, boost=0):
+    def __init__(self, num_of_units, hit_points, attack_damage, attack_type, initiative, immune_to, weak_to, index=None, army=None, boost=0):
         self.num_of_units = num_of_units
         self.num_of_alive_units = num_of_units
 
@@ -25,7 +27,7 @@ class Group:
         self.weak_to = weak_to
 
         self.index = index
-        self.camp = camp
+        self.army = army
         self.attacking = None
         self.attacked_by = None
         self.boost = boost
@@ -42,14 +44,14 @@ class Solution(InputAsLinesSolution):
             r"^(\d+) units each with (\d+) hit points (\([a-z,; ]+\) )?with an attack that does (\d+) ([a-z]+) damage at initiative (\d+)$")
         groups = []
         index = 0
-        camp = 0
+        army = 0
 
         for line in lines:
             if not re.match("^\d", line):
                 if line == "Immune System:":
-                    camp = 0
+                    army = IMMUNE_
                 elif line == "Infection:":
-                    camp = 1
+                    army = INFECTION_
                 continue
 
             re_groups = pattern.match(line).groups()
@@ -72,7 +74,7 @@ class Solution(InputAsLinesSolution):
                         weak_to.update(types.split(", "))
 
             groups.append(Group(num_of_units, hit_points, attack_damage,
-                          attack_type, initiative, immune_to, weak_to, index, camp=camp))
+                          attack_type, initiative, immune_to, weak_to, index, army=army))
             index += 1
 
         return groups
@@ -88,12 +90,11 @@ class Solution(InputAsLinesSolution):
     def battle(self, groups, boost=0):
         for group in groups:
             group.num_of_alive_units = group.num_of_units
-            if group.camp == 0:
+            if group.army == IMMUNE_:
                 group.boost = boost
 
-        while any(group.camp == 0 for group in groups) and any(group.camp == 1 for group in groups):
-            # check if damage is lower than the hp and deaths stopped happening
-            stale = True
+        while any(group.army == 0 for group in groups) and any(group.army == 1 for group in groups):
+            stale = True # check if damage is lower than the hp and deaths stopped happening
 
             for group in groups:
                 group.attacking = None
@@ -101,8 +102,8 @@ class Solution(InputAsLinesSolution):
 
             # target selection
             for selecting_group in sorted(groups, key=lambda g: (-g.effective_power(), -g.initiative)):
-                enemies = [g for g in groups if g.camp !=
-                           selecting_group.camp and g.attacked_by is None]
+                enemies = [g for g in groups if g.army !=
+                           selecting_group.army and g.attacked_by is None]
                 if len(enemies) == 0:
                     continue
 
@@ -126,7 +127,7 @@ class Solution(InputAsLinesSolution):
             # remove groups with 0 units left
             groups = [group for group in groups if group.num_of_alive_units > 0]
 
-            if stale: groups = [group for group in groups if group.camp == 1] # infection wins
+            if stale: groups = [group for group in groups if group.army == INFECTION_] # infection wins
             
         return groups
 
@@ -150,7 +151,7 @@ class Solution(InputAsLinesSolution):
 
             groups_after = self.battle(groups, candidate_boost)
 
-            if list(groups_after)[0].camp == 0:
+            if list(groups_after)[0].army == IMMUNE_:
                 max_boost = candidate_boost  # immune system won
             else:
                 min_boost = candidate_boost + 1
