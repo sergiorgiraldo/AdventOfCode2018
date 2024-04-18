@@ -1,4 +1,9 @@
 <style>pre{font-size: large;}</style>
+<script src="script.js"></script>
+<div id="navigation">
+<button onclick="navigateTo('prev')">Previous Day</button>
+<button onclick="navigateTo('next')">Next Day</button>
+</div>
 <h1>Day 01</h1>
 <pre>
 # puzzle prompt: https://adventofcode.com/2018/day/1
@@ -13,12 +18,12 @@ class Solution(InputAsLinesSolution):
     _year = 2018
     _day = 1
 
-    def get_final_frequency(self, changes):
+    def get_final_frequency(self, changes)->int:
         changes = list(map(int, changes))
 
         return sum(changes)
 
-    def get_repeating_frequency(self, changes):
+    def get_repeating_frequency(self, changes)->int:
         changes = list(map(int, changes))
         
         seen = {0}

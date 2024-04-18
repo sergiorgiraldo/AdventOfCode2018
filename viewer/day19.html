@@ -1,4 +1,9 @@
 <style>pre{font-size: large;}</style>
+<script src="script.js"></script>
+<div id="navigation">
+<button onclick="navigateTo('prev')">Previous Day</button>
+<button onclick="navigateTo('next')">Next Day</button>
+</div>
 <h1>Day 19</h1>
 <pre>
 # puzzle prompt: https://adventofcode.com/2018/day/19
@@ -129,6 +134,8 @@ class Solution(InputAsLinesSolution):
                     "eqri":Interpreter.eqri, 
                     "eqrr":Interpreter.eqrr}
 
+    #little bit different from day 16, there all instructions were by index
+    #here I have the instruction name
     def parse(self, lines):
         index = int(lines[0].split(" ")[1])
 
@@ -157,19 +164,9 @@ class Solution(InputAsLinesSolution):
 
         return registers[0]
 
-    def part_1(self):
-        start_time = time.time()
-
-        res = self.run_program(self.input)
-
-        end_time = time.time()
-
-        self.solve("1", res, (end_time - start_time))
-
     #running the program takes forever, needs to diassemble
     #see diassemble.txt
-    def part_2(self):
-        start_time = time.time()
+    def run_program2(self):
         # a = 0
         # c = 10551428
         # for b in range(1, c+1):
@@ -178,7 +175,7 @@ class Solution(InputAsLinesSolution):
         #             a += b
         # res = a
 
-        # the code above took forever to solve 
+        # also the diassembled code above took forever to solve 
         # boils down to find all divisors of 10551428 and sum them, so ...
         def find_divisors(n):
             large_divisors = []
@@ -190,7 +187,21 @@ class Solution(InputAsLinesSolution):
             for divisor in reversed(large_divisors):
                 yield divisor
         
-        res = int(sum(list(find_divisors(10551428))))
+        return int(sum(list(find_divisors(10551428))))
+
+    def part_1(self):
+        start_time = time.time()
+
+        res = self.run_program(self.input)
+
+        end_time = time.time()
+
+        self.solve("1", res, (end_time - start_time))
+
+    def part_2(self):
+        start_time = time.time()
+       
+        res = self.run_program2()
 
         end_time = time.time()
 

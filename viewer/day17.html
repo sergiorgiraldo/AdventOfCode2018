@@ -1,4 +1,9 @@
 <style>pre{font-size: large;}</style>
+<script src="script.js"></script>
+<div id="navigation">
+<button onclick="navigateTo('prev')">Previous Day</button>
+<button onclick="navigateTo('next')">Next Day</button>
+</div>
 <h1>Day 17</h1>
 <pre>
 # puzzle prompt: https://adventofcode.com/2018/day/17
@@ -28,7 +33,7 @@ class Solution(InputAsLinesSolution):
         if y > ymax:
             return True
         
-        if m[x,y] != ".":
+        if m[x,y] != ".": #water flows
             return m[x,y] == "|"
 
         m[x,y] = "|"
@@ -39,9 +44,9 @@ class Solution(InputAsLinesSolution):
         if (d != 1 and self.flow(m,ymax,x-1,y,-1,print)) | (d != -1 and self.flow(m,ymax,x+1,y,1,print)):
             return True
 
-        if d == 0:
-            self.fill(m,x,y,-1)
-            self.fill(m,x+1,y,1)
+        if d == 0: #water settles ...
+            self.fill(m,x,y,-1)     # to the left
+            self.fill(m,x+1,y,1)    # to the right
 
         return False
 

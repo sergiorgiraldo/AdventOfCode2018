@@ -1,4 +1,9 @@
 <style>pre{font-size: large;}</style>
+<script src="script.js"></script>
+<div id="navigation">
+<button onclick="navigateTo('prev')">Previous Day</button>
+<button onclick="navigateTo('next')">Next Day</button>
+</div>
 <h1>Day 03</h1>
 <pre>
 # puzzle prompt: https://adventofcode.com/2018/day/3
@@ -57,9 +62,12 @@ class Solution(InputAsLinesSolution):
             untouched = True
             
             for i in range(x, x+w):
+                if not untouched:
+                    break
                 for j in range(y, y+h):
                     if grid[i][j] != 1:
                         untouched = False
+                        break
             
             if untouched:
                 return (id + 1)        
