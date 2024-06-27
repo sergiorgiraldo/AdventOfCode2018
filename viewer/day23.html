@@ -1,4 +1,32 @@
-<style>pre{font-size: large;}</style>
+<style>
+        pre {
+    background: #303030;
+    color: #f1f1f1;
+    padding: 10px 16px;
+    border-radius: 2px;
+    border-top: 4px solid #00aeef;
+    -moz-box-shadow: inset 0 0 10px #000;
+    box-shadow: inset 0 0 10px #000;
+    counter-reset: line;
+    }
+    pre span {
+    display: block;
+    line-height: 1.5rem;
+    }
+    pre span:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    padding: 0 .5em;
+    margin-right: .5em;
+    color: #888
+    }
+    span{
+        font-family: monospace;
+        font-size: 16px;
+    }
+    </style>
 <script src="script.js"></script>
 <div id="navigation">
 <button onclick="navigateTo('prev')">Previous Day</button>
@@ -6,88 +34,88 @@
 </div>
 <h1>Day 23</h1>
 <pre>
-# puzzle prompt: https://adventofcode.com/2018/day/23
-
-import time
-import sys
-sys.path.insert(0,"..")
-
-from base.advent import *
-import re
-from z3 import If, Int, Optimize
-
-class Solution(InputAsLinesSolution):
-    _year = 2018
-    _day = 23
-
-    def get_manhattan_distance(self, point1, point2):
-        return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1]) + abs(point1[2] - point2[2])
-
-    def parse(self, lines):
-        pattern = re.compile(r"^pos=<([-]?\d+),([-]?\d+),([-]?\d+)>, r=(\d+)$")
-        nanobots = []
-
-        for line in lines:
-            x, y, z, r = map(int, pattern.match(line.strip()).groups())
-
-            nanobots.append((x, y, z, r))
-
-        return nanobots
-
-    def get_nanobots_in_range(self, lines):
-        nanobots = self.parse(lines)
-        
-        max_range = max(nanobots, key=lambda nanobot: nanobot[3])
-        
-        return len([nanobot for nanobot in nanobots 
-                    if self.get_manhattan_distance(max_range, nanobot) <= max_range[3]])
-
-    #the problem is to find the point where we have more bots in range, condition I below
-    #from this set, pick the one closest to the origin, condition II below
-    #one could write this by hand picking a starting good point and
-    #testing a bunch of points around it (see optimize.manual.py)
-    #z3 is f*ck1ng great, it does it for you :)
-    def get_closest_to_nanobots(self, lines):
-        def abs(x):
-            return If(x >= 0,x,-x)
-
-        nanobots = self.parse(lines)
-
-        x,y,z,opt = Int("x"), Int("y"), Int("z"), Optimize()
-
-        # condition I
-        opt.maximize(sum(If(abs(x-x1) + abs(y-y1) + abs(z-z1) <= rng, 1, 0) for x1,y1,z1,rng in nanobots))
-        # condition II
-        opt.minimize(abs(x) + abs(y) + abs(z))
-
-        opt.check()
-
-        best_distance = opt.model().eval(abs(x) + abs(y) + abs(z))
-
-        return best_distance.as_long()
-
-    def part_1(self):
-        start_time = time.time()
-
-        res = self.get_nanobots_in_range(self.input)
-
-        end_time = time.time()
-
-        self.solve("1", res, (end_time - start_time))
-
-    def part_2(self):
-        start_time = time.time()
-
-        res = self.get_closest_to_nanobots(self.input)
-
-        end_time = time.time()
-
-        self.solve("2", res, (end_time - start_time))
-
-if __name__ == '__main__':
-    solution = Solution()
-
-    solution.part_1()
-    
-    solution.part_2()
+<span># puzzle prompt: https://adventofcode.com/2018/day/23</span>
+<span></span>
+<span>import time</span>
+<span>import sys</span>
+<span>sys.path.insert(0,"..")</span>
+<span></span>
+<span>from base.advent import *</span>
+<span>import re</span>
+<span>from z3 import If, Int, Optimize</span>
+<span></span>
+<span>class Solution(InputAsLinesSolution):</span>
+<span>    _year = 2018</span>
+<span>    _day = 23</span>
+<span></span>
+<span>    def get_manhattan_distance(self, point1, point2):</span>
+<span>        return abs(point1[0] - point2[0]) + abs(point1[1] - point2[1]) + abs(point1[2] - point2[2])</span>
+<span></span>
+<span>    def parse(self, lines):</span>
+<span>        pattern = re.compile(r"^pos=<([-]?\d+),([-]?\d+),([-]?\d+)>, r=(\d+)$")</span>
+<span>        nanobots = []</span>
+<span></span>
+<span>        for line in lines:</span>
+<span>            x, y, z, r = map(int, pattern.match(line.strip()).groups())</span>
+<span></span>
+<span>            nanobots.append((x, y, z, r))</span>
+<span></span>
+<span>        return nanobots</span>
+<span></span>
+<span>    def get_nanobots_in_range(self, lines):</span>
+<span>        nanobots = self.parse(lines)</span>
+<span>        </span>
+<span>        max_range = max(nanobots, key=lambda nanobot: nanobot[3])</span>
+<span>        </span>
+<span>        return len([nanobot for nanobot in nanobots </span>
+<span>                    if self.get_manhattan_distance(max_range, nanobot) <= max_range[3]])</span>
+<span></span>
+<span>    #the problem is to find the point where we have more bots in range, condition I below</span>
+<span>    #from this set, pick the one closest to the origin, condition II below</span>
+<span>    #one could write this by hand picking a starting good point and</span>
+<span>    #testing a bunch of points around it (see optimize.manual.py)</span>
+<span>    #z3 is f*ck1ng great, it does it for you :)</span>
+<span>    def get_closest_to_nanobots(self, lines):</span>
+<span>        def abs(x):</span>
+<span>            return If(x >= 0,x,-x)</span>
+<span></span>
+<span>        nanobots = self.parse(lines)</span>
+<span></span>
+<span>        x,y,z,opt = Int("x"), Int("y"), Int("z"), Optimize()</span>
+<span></span>
+<span>        # condition I</span>
+<span>        opt.maximize(sum(If(abs(x-x1) + abs(y-y1) + abs(z-z1) <= rng, 1, 0) for x1,y1,z1,rng in nanobots))</span>
+<span>        # condition II</span>
+<span>        opt.minimize(abs(x) + abs(y) + abs(z))</span>
+<span></span>
+<span>        opt.check()</span>
+<span></span>
+<span>        best_distance = opt.model().eval(abs(x) + abs(y) + abs(z))</span>
+<span></span>
+<span>        return best_distance.as_long()</span>
+<span></span>
+<span>    def part_1(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.get_nanobots_in_range(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("1", res, (end_time - start_time))</span>
+<span></span>
+<span>    def part_2(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.get_closest_to_nanobots(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("2", res, (end_time - start_time))</span>
+<span></span>
+<span>if __name__ == '__main__':</span>
+<span>    solution = Solution()</span>
+<span></span>
+<span>    solution.part_1()</span>
+<span>    </span>
+<span>    solution.part_2()</span>
 </pre>

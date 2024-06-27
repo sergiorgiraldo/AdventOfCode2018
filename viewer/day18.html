@@ -1,4 +1,32 @@
-<style>pre{font-size: large;}</style>
+<style>
+        pre {
+    background: #303030;
+    color: #f1f1f1;
+    padding: 10px 16px;
+    border-radius: 2px;
+    border-top: 4px solid #00aeef;
+    -moz-box-shadow: inset 0 0 10px #000;
+    box-shadow: inset 0 0 10px #000;
+    counter-reset: line;
+    }
+    pre span {
+    display: block;
+    line-height: 1.5rem;
+    }
+    pre span:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    padding: 0 .5em;
+    margin-right: .5em;
+    color: #888
+    }
+    span{
+        font-family: monospace;
+        font-size: 16px;
+    }
+    </style>
 <script src="script.js"></script>
 <div id="navigation">
 <button onclick="navigateTo('prev')">Previous Day</button>
@@ -6,137 +34,137 @@
 </div>
 <h1>Day 18</h1>
 <pre>
-# puzzle prompt: https://adventofcode.com/2018/day/18
-
-import time
-import sys
-sys.path.insert(0, "..")
-
-from base.advent import *
-from collections import Counter
-import hashlib
-
-class Solution(InputAsLinesSolution):
-    _year = 2018
-    _day = 18
-
-    def grow(self, field: list[str], times: int) -> list[str]:
-        for _ in range(times):
-            new_field = []
-
-            for row in range(len(field)):
-                state = ""
-                for col in range(len(field[0])):
-                    
-                    # * * *
-                    # * 0 *
-                    # * * *
-
-                    positions_around = [
-                                        (row-1, col-1),
-                                        (row-1, col),
-                                        (row-1, col+1),
-                                        (row,   col-1),
-                                        (row,   col+1),
-                                        (row+1, col-1),
-                                        (row+1, col),
-                                        (row+1, col+1)]
-                    trees, yards = 0, 0
-
-                    for new_row, new_col in positions_around:
-                        #inbound check
-                        if new_row < 0 or new_row >= len(field) or new_col < 0 or new_col >= len(field[0]):
-                            continue
-
-                        match field[new_row][new_col]:
-                            case "|": trees += 1
-                            case "#": yards += 1
-                    
-                    match field[row][col]:
-                        case ".": state += "|" if trees >= 3              else "."
-                        case "|": state += "#" if yards >= 3              else "|"
-                        case "#": state += "#" if yards > 0 and trees > 0 else "."
-                
-                new_field.append(state)
-            
-            field = new_field
-
-        return field
-
-    def get_resource_value(self, field: list[str]) -> int:
-        counts = Counter(tile for row in field for tile in row)
-        return counts["#"] * counts["|"]
-
-    def grow_for_10mins(self, field):
-        return self.get_resource_value(self.grow(field, 10))
-
-    # tried to see if it is linear; it is not (commented below)
-    # i tried to find the cycle in the resource_value, also dead end
-    # then the field probably repeats itself, bingo
-    # from 470 -> 526 -> 582 -> (+56) ...
-    def grow_till_today(self, field):
-        # ****** dead end
-        # base = 0
-        # for i in range(1000):
-        #     field = self.grow(field, 1)
-        #     curr = self.get_resource_value(field)
-        #     print(i, curr - base)
-        #     base = curr
-        # ****** dead end
-
-        # ****** gotcha
-        # a,b,c="","",""
-        # for i in range(600):
-        #     field = self.grow(field, 1)
-        #     encoded = self.encode(field)
-        #     if i == 470: a = encoded   
-        #     if i == 526: b = encoded   
-        #     if i == 582: c = encoded               
-        # print(a)
-        # assert(a==b)
-        # assert(b==c)
-        # ****** gotcha
-
-        states = {}
-
-        for i in range(1000000000):
-            field = self.grow(field, 1)
-            seen = self.encode(field)
-
-            if seen in states:
-                offset = (1000000000 - states[seen] - 1) % (i-states[seen])
-                field = self.grow(field, offset)
-                break
-            states[seen] = i
-
-        return self.get_resource_value(field)
-
-    def encode(self, state):
-        return "".join(["".join(row) for row in state])
-
-    def part_1(self):
-        start_time = time.time()
-
-        res = self.grow_for_10mins(self.input)
-
-        end_time = time.time()
-
-        self.solve("1", res, (end_time - start_time))
-
-    def part_2(self):
-        start_time = time.time()
-
-        res = self.grow_till_today(self.input)
-
-        end_time = time.time()
-
-        self.solve("2", res, (end_time - start_time))
-
-if __name__ == "__main__":
-    solution = Solution()
-
-    solution.part_1()
-
-    solution.part_2()
-
+<span># puzzle prompt: https://adventofcode.com/2018/day/18</span>
+<span></span>
+<span>import time</span>
+<span>import sys</span>
+<span>sys.path.insert(0, "..")</span>
+<span></span>
+<span>from base.advent import *</span>
+<span>from collections import Counter</span>
+<span>import hashlib</span>
+<span></span>
+<span>class Solution(InputAsLinesSolution):</span>
+<span>    _year = 2018</span>
+<span>    _day = 18</span>
+<span></span>
+<span>    def grow(self, field: list[str], times: int) -> list[str]:</span>
+<span>        for _ in range(times):</span>
+<span>            new_field = []</span>
+<span></span>
+<span>            for row in range(len(field)):</span>
+<span>                state = ""</span>
+<span>                for col in range(len(field[0])):</span>
+<span>                    </span>
+<span>                    # * * *</span>
+<span>                    # * 0 *</span>
+<span>                    # * * *</span>
+<span></span>
+<span>                    positions_around = [</span>
+<span>                                        (row-1, col-1),</span>
+<span>                                        (row-1, col),</span>
+<span>                                        (row-1, col+1),</span>
+<span>                                        (row,   col-1),</span>
+<span>                                        (row,   col+1),</span>
+<span>                                        (row+1, col-1),</span>
+<span>                                        (row+1, col),</span>
+<span>                                        (row+1, col+1)]</span>
+<span>                    trees, yards = 0, 0</span>
+<span></span>
+<span>                    for new_row, new_col in positions_around:</span>
+<span>                        #inbound check</span>
+<span>                        if new_row < 0 or new_row >= len(field) or new_col < 0 or new_col >= len(field[0]):</span>
+<span>                            continue</span>
+<span></span>
+<span>                        match field[new_row][new_col]:</span>
+<span>                            case "|": trees += 1</span>
+<span>                            case "#": yards += 1</span>
+<span>                    </span>
+<span>                    match field[row][col]:</span>
+<span>                        case ".": state += "|" if trees >= 3              else "."</span>
+<span>                        case "|": state += "#" if yards >= 3              else "|"</span>
+<span>                        case "#": state += "#" if yards > 0 and trees > 0 else "."</span>
+<span>                </span>
+<span>                new_field.append(state)</span>
+<span>            </span>
+<span>            field = new_field</span>
+<span></span>
+<span>        return field</span>
+<span></span>
+<span>    def get_resource_value(self, field: list[str]) -> int:</span>
+<span>        counts = Counter(tile for row in field for tile in row)</span>
+<span>        return counts["#"] * counts["|"]</span>
+<span></span>
+<span>    def grow_for_10mins(self, field):</span>
+<span>        return self.get_resource_value(self.grow(field, 10))</span>
+<span></span>
+<span>    # tried to see if it is linear; it is not (commented below)</span>
+<span>    # i tried to find the cycle in the resource_value, also dead end</span>
+<span>    # then the field probably repeats itself, bingo</span>
+<span>    # from 470 -> 526 -> 582 -> (+56) ...</span>
+<span>    def grow_till_today(self, field):</span>
+<span>        # ****** dead end</span>
+<span>        # base = 0</span>
+<span>        # for i in range(1000):</span>
+<span>        #     field = self.grow(field, 1)</span>
+<span>        #     curr = self.get_resource_value(field)</span>
+<span>        #     print(i, curr - base)</span>
+<span>        #     base = curr</span>
+<span>        # ****** dead end</span>
+<span></span>
+<span>        # ****** gotcha</span>
+<span>        # a,b,c="","",""</span>
+<span>        # for i in range(600):</span>
+<span>        #     field = self.grow(field, 1)</span>
+<span>        #     encoded = self.encode(field)</span>
+<span>        #     if i == 470: a = encoded   </span>
+<span>        #     if i == 526: b = encoded   </span>
+<span>        #     if i == 582: c = encoded               </span>
+<span>        # print(a)</span>
+<span>        # assert(a==b)</span>
+<span>        # assert(b==c)</span>
+<span>        # ****** gotcha</span>
+<span></span>
+<span>        states = {}</span>
+<span></span>
+<span>        for i in range(1000000000):</span>
+<span>            field = self.grow(field, 1)</span>
+<span>            seen = self.encode(field)</span>
+<span></span>
+<span>            if seen in states:</span>
+<span>                offset = (1000000000 - states[seen] - 1) % (i-states[seen])</span>
+<span>                field = self.grow(field, offset)</span>
+<span>                break</span>
+<span>            states[seen] = i</span>
+<span></span>
+<span>        return self.get_resource_value(field)</span>
+<span></span>
+<span>    def encode(self, state):</span>
+<span>        return "".join(["".join(row) for row in state])</span>
+<span></span>
+<span>    def part_1(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.grow_for_10mins(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("1", res, (end_time - start_time))</span>
+<span></span>
+<span>    def part_2(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.grow_till_today(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("2", res, (end_time - start_time))</span>
+<span></span>
+<span>if __name__ == "__main__":</span>
+<span>    solution = Solution()</span>
+<span></span>
+<span>    solution.part_1()</span>
+<span></span>
+<span>    solution.part_2()</span>
+<span></span>
 </pre>

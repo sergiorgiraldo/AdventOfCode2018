@@ -1,4 +1,32 @@
-<style>pre{font-size: large;}</style>
+<style>
+        pre {
+    background: #303030;
+    color: #f1f1f1;
+    padding: 10px 16px;
+    border-radius: 2px;
+    border-top: 4px solid #00aeef;
+    -moz-box-shadow: inset 0 0 10px #000;
+    box-shadow: inset 0 0 10px #000;
+    counter-reset: line;
+    }
+    pre span {
+    display: block;
+    line-height: 1.5rem;
+    }
+    pre span:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    padding: 0 .5em;
+    margin-right: .5em;
+    color: #888
+    }
+    span{
+        font-family: monospace;
+        font-size: 16px;
+    }
+    </style>
 <script src="script.js"></script>
 <div id="navigation">
 <button onclick="navigateTo('prev')">Previous Day</button>
@@ -6,211 +34,211 @@
 </div>
 <h1>Day 19</h1>
 <pre>
-# puzzle prompt: https://adventofcode.com/2018/day/19
-
-import time
-import sys
-sys.path.insert(0,"..")
-
-from base.advent import *
-import math
-
-class Interpreter:
-    def addr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] + status[B]
-        return result
-
-    def addi(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] + B
-        return result
-
-    def mulr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] * status[B]
-        return result
-
-    def muli(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] * B
-        return result
-
-    def banr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] & status[B]
-        return result
-
-    def bani(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] & B
-        return result
-
-    def borr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] | status[B]
-        return result
-
-    def bori(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A] | B
-        return result
-
-    def setr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = status[A]
-        return result
-
-    def seti(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = A
-        return result
-
-    def gtir(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if A > status[B] else 0
-        return result
-
-    def gtri(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if status[A] > B else 0
-        return result
-
-    def gtrr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if status[A] > status[B] else 0
-        return result
-
-    def eqir(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if A == status[B] else 0
-        return result
-
-    def eqri(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if status[A] == B else 0
-        return result
-
-    def eqrr(opcodes, status):
-        A, B, C = opcodes
-        result = status.copy()
-        result[C] = 1 if status[A] == status[B] else 0
-        return result
-
-
-class Solution(InputAsLinesSolution):
-    _year = 2018
-    _day = 19
-
-    instructions = {"addr":Interpreter.addr, 
-                    "addi":Interpreter.addi, 
-                    "mulr":Interpreter.mulr, 
-                    "muli":Interpreter.muli, 
-                    "banr":Interpreter.banr, 
-                    "bani":Interpreter.bani, 
-                    "borr":Interpreter.borr, 
-                    "bori":Interpreter.bori, 
-                    "setr":Interpreter.setr, 
-                    "seti":Interpreter.seti, 
-                    "gtir":Interpreter.gtir, 
-                    "gtri":Interpreter.gtri, 
-                    "gtrr":Interpreter.gtrr, 
-                    "eqir":Interpreter.eqir, 
-                    "eqri":Interpreter.eqri, 
-                    "eqrr":Interpreter.eqrr}
-
-    #little bit different from day 16, there all instructions were by index
-    #here I have the instruction name
-    def parse(self, lines):
-        index = int(lines[0].split(" ")[1])
-
-        program = []
-        for line in lines[1:]:
-            parts = line.split(" ")
-            params = [int(x) for x in parts[1:]]
-            program.append((parts[0], params))
-
-        return index, program
-
-    def run_program(self, lines):
-        index, program = self.parse(lines)
-        registers = [0]*6
-
-        ip = registers[index]
-
-        while ip >= 0 and ip < len(program):   
-            instr_name, params = program[ip]
-            
-            registers = self.instructions[instr_name](params, registers)
-            
-            registers[index] += 1
-
-            ip = registers[index]
-
-        return registers[0]
-
-    #running the program takes forever, needs to diassemble
-    #see diassemble.txt
-    def run_program2(self):
-        # a = 0
-        # c = 10551428
-        # for b in range(1, c+1):
-        #     for e in range(1, c+1):
-        #         if b * e == c:
-        #             a += b
-        # res = a
-
-        # also the diassembled code above took forever to solve 
-        # boils down to find all divisors of 10551428 and sum them, so ...
-        def find_divisors(n):
-            large_divisors = []
-            for i in range(1, int(math.sqrt(n) + 1)):
-                if n % i == 0:
-                    yield i
-                    if i*i != n:
-                        large_divisors.append(n / i)
-            for divisor in reversed(large_divisors):
-                yield divisor
-        
-        return int(sum(list(find_divisors(10551428))))
-
-    def part_1(self):
-        start_time = time.time()
-
-        res = self.run_program(self.input)
-
-        end_time = time.time()
-
-        self.solve("1", res, (end_time - start_time))
-
-    def part_2(self):
-        start_time = time.time()
-       
-        res = self.run_program2()
-
-        end_time = time.time()
-
-        self.solve("2", res, (end_time - start_time))
-
-if __name__ == '__main__':
-    solution = Solution()
-
-    solution.part_1()
-    
-    solution.part_2()
+<span># puzzle prompt: https://adventofcode.com/2018/day/19</span>
+<span></span>
+<span>import time</span>
+<span>import sys</span>
+<span>sys.path.insert(0,"..")</span>
+<span></span>
+<span>from base.advent import *</span>
+<span>import math</span>
+<span></span>
+<span>class Interpreter:</span>
+<span>    def addr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] + status[B]</span>
+<span>        return result</span>
+<span></span>
+<span>    def addi(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] + B</span>
+<span>        return result</span>
+<span></span>
+<span>    def mulr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] * status[B]</span>
+<span>        return result</span>
+<span></span>
+<span>    def muli(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] * B</span>
+<span>        return result</span>
+<span></span>
+<span>    def banr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] & status[B]</span>
+<span>        return result</span>
+<span></span>
+<span>    def bani(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] & B</span>
+<span>        return result</span>
+<span></span>
+<span>    def borr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] | status[B]</span>
+<span>        return result</span>
+<span></span>
+<span>    def bori(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A] | B</span>
+<span>        return result</span>
+<span></span>
+<span>    def setr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = status[A]</span>
+<span>        return result</span>
+<span></span>
+<span>    def seti(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = A</span>
+<span>        return result</span>
+<span></span>
+<span>    def gtir(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if A > status[B] else 0</span>
+<span>        return result</span>
+<span></span>
+<span>    def gtri(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if status[A] > B else 0</span>
+<span>        return result</span>
+<span></span>
+<span>    def gtrr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if status[A] > status[B] else 0</span>
+<span>        return result</span>
+<span></span>
+<span>    def eqir(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if A == status[B] else 0</span>
+<span>        return result</span>
+<span></span>
+<span>    def eqri(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if status[A] == B else 0</span>
+<span>        return result</span>
+<span></span>
+<span>    def eqrr(opcodes, status):</span>
+<span>        A, B, C = opcodes</span>
+<span>        result = status.copy()</span>
+<span>        result[C] = 1 if status[A] == status[B] else 0</span>
+<span>        return result</span>
+<span></span>
+<span></span>
+<span>class Solution(InputAsLinesSolution):</span>
+<span>    _year = 2018</span>
+<span>    _day = 19</span>
+<span></span>
+<span>    instructions = {"addr":Interpreter.addr, </span>
+<span>                    "addi":Interpreter.addi, </span>
+<span>                    "mulr":Interpreter.mulr, </span>
+<span>                    "muli":Interpreter.muli, </span>
+<span>                    "banr":Interpreter.banr, </span>
+<span>                    "bani":Interpreter.bani, </span>
+<span>                    "borr":Interpreter.borr, </span>
+<span>                    "bori":Interpreter.bori, </span>
+<span>                    "setr":Interpreter.setr, </span>
+<span>                    "seti":Interpreter.seti, </span>
+<span>                    "gtir":Interpreter.gtir, </span>
+<span>                    "gtri":Interpreter.gtri, </span>
+<span>                    "gtrr":Interpreter.gtrr, </span>
+<span>                    "eqir":Interpreter.eqir, </span>
+<span>                    "eqri":Interpreter.eqri, </span>
+<span>                    "eqrr":Interpreter.eqrr}</span>
+<span></span>
+<span>    #little bit different from day 16, there all instructions were by index</span>
+<span>    #here I have the instruction name</span>
+<span>    def parse(self, lines):</span>
+<span>        index = int(lines[0].split(" ")[1])</span>
+<span></span>
+<span>        program = []</span>
+<span>        for line in lines[1:]:</span>
+<span>            parts = line.split(" ")</span>
+<span>            params = [int(x) for x in parts[1:]]</span>
+<span>            program.append((parts[0], params))</span>
+<span></span>
+<span>        return index, program</span>
+<span></span>
+<span>    def run_program(self, lines):</span>
+<span>        index, program = self.parse(lines)</span>
+<span>        registers = [0]*6</span>
+<span></span>
+<span>        ip = registers[index]</span>
+<span></span>
+<span>        while ip >= 0 and ip < len(program):   </span>
+<span>            instr_name, params = program[ip]</span>
+<span>            </span>
+<span>            registers = self.instructions[instr_name](params, registers)</span>
+<span>            </span>
+<span>            registers[index] += 1</span>
+<span></span>
+<span>            ip = registers[index]</span>
+<span></span>
+<span>        return registers[0]</span>
+<span></span>
+<span>    #running the program takes forever, needs to diassemble</span>
+<span>    #see diassemble.txt</span>
+<span>    def run_program2(self):</span>
+<span>        # a = 0</span>
+<span>        # c = 10551428</span>
+<span>        # for b in range(1, c+1):</span>
+<span>        #     for e in range(1, c+1):</span>
+<span>        #         if b * e == c:</span>
+<span>        #             a += b</span>
+<span>        # res = a</span>
+<span></span>
+<span>        # also the diassembled code above took forever to solve </span>
+<span>        # boils down to find all divisors of 10551428 and sum them, so ...</span>
+<span>        def find_divisors(n):</span>
+<span>            large_divisors = []</span>
+<span>            for i in range(1, int(math.sqrt(n) + 1)):</span>
+<span>                if n % i == 0:</span>
+<span>                    yield i</span>
+<span>                    if i*i != n:</span>
+<span>                        large_divisors.append(n / i)</span>
+<span>            for divisor in reversed(large_divisors):</span>
+<span>                yield divisor</span>
+<span>        </span>
+<span>        return int(sum(list(find_divisors(10551428))))</span>
+<span></span>
+<span>    def part_1(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.run_program(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("1", res, (end_time - start_time))</span>
+<span></span>
+<span>    def part_2(self):</span>
+<span>        start_time = time.time()</span>
+<span>       </span>
+<span>        res = self.run_program2()</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("2", res, (end_time - start_time))</span>
+<span></span>
+<span>if __name__ == '__main__':</span>
+<span>    solution = Solution()</span>
+<span></span>
+<span>    solution.part_1()</span>
+<span>    </span>
+<span>    solution.part_2()</span>
 </pre>

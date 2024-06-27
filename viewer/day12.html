@@ -1,4 +1,32 @@
-<style>pre{font-size: large;}</style>
+<style>
+        pre {
+    background: #303030;
+    color: #f1f1f1;
+    padding: 10px 16px;
+    border-radius: 2px;
+    border-top: 4px solid #00aeef;
+    -moz-box-shadow: inset 0 0 10px #000;
+    box-shadow: inset 0 0 10px #000;
+    counter-reset: line;
+    }
+    pre span {
+    display: block;
+    line-height: 1.5rem;
+    }
+    pre span:before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    border-right: 1px solid #ddd;
+    padding: 0 .5em;
+    margin-right: .5em;
+    color: #888
+    }
+    span{
+        font-family: monospace;
+        font-size: 16px;
+    }
+    </style>
 <script src="script.js"></script>
 <div id="navigation">
 <button onclick="navigateTo('prev')">Previous Day</button>
@@ -6,101 +34,101 @@
 </div>
 <h1>Day 12</h1>
 <pre>
-# puzzle prompt: https://adventofcode.com/2018/day/12
-
-import time
-import sys
-sys.path.insert(0,"..")
-
-from base.advent import *
-from collections import defaultdict
-
-class Solution(InputAsLinesSolution):
-    _year = 2018
-    _day = 12
-
-    def parse(self, lines):
-        state = defaultdict(int)
-
-        initial_status = list(map(lambda chr: 0 if chr == "." else 1, lines[0].strip().split(" ")[2]))
-
-        for i, has_plant in enumerate(initial_status):
-            state[i] = has_plant #0 or 1
-
-        rules = [0] * 32
-        for line in lines[2:]:
-            src, dst = map(lambda x: int(x.replace(".", "0").replace("#", "1"), 2), line.split(" => "))
-            rules[src] = dst
-
-        return state, rules
-
-    def grow(self, state, rules):
-        snapshot = state.copy()
-        min_i = min(snapshot.keys())
-        max_i = max(snapshot.keys())
-        
-        for i in range(min_i-2, max_i+3):
-            rule = (((snapshot[i-2]*2 + snapshot[i-1])*2 + snapshot[i])*2 + snapshot[i+1])*2 + snapshot[i+2]
-            state[i] = rules[rule]
-            if state[i] == 0:
-                del state[i]
-                        
-    def simulate(self, lines):
-        state, rules = self.parse(lines)
-
-        for _ in range(20):
-            self.grow(state, rules)
-
-        pots = sum(filter(lambda i: state[i] == 1, state.keys()))
-
-        return pots
-
-    # after 167 iterations, the number of plants increase by 26 for each generation  
-    # It was out of observation, see commented piece below 
-    # tried with 100 and 500, then narrowed down to 167
-    def simulate_till_today(self, lines, offset=167):
-        state, rules = self.parse(lines)
-
-        # prev = 0
-        # for gen in range(limit):
-        #     self.grow(state, rules)
-        #     tmp = sum(filter(lambda i: state[i] == 1, state.keys()))
-        #     print("gen-", gen, "-pots-", tmp, "-diff-", (tmp -prev)) 
-        #     prev = tmp
-
-        generations = 50_000_000_000
-
-        for _ in range(offset):
-            self.grow(state, rules)
-
-        pots = sum(filter(lambda i: state[i] == 1, state.keys()))
-        pots = pots + 26*(generations - offset)
-
-        return pots
-
-    def part_1(self):
-        start_time = time.time()
-
-        res = self.simulate(self.input)
-
-        end_time = time.time()
-
-        self.solve("1", res, (end_time - start_time))
-
-    def part_2(self):
-        start_time = time.time()
-
-        #self.simulate_till_today(self.input, 200)
-        res = self.simulate_till_today(self.input)
-
-        end_time = time.time()
-
-        self.solve("2", res, (end_time - start_time))
-
-if __name__ == '__main__':
-    solution = Solution()
-
-    solution.part_1()
-    
-    solution.part_2()
+<span># puzzle prompt: https://adventofcode.com/2018/day/12</span>
+<span></span>
+<span>import time</span>
+<span>import sys</span>
+<span>sys.path.insert(0,"..")</span>
+<span></span>
+<span>from base.advent import *</span>
+<span>from collections import defaultdict</span>
+<span></span>
+<span>class Solution(InputAsLinesSolution):</span>
+<span>    _year = 2018</span>
+<span>    _day = 12</span>
+<span></span>
+<span>    def parse(self, lines):</span>
+<span>        state = defaultdict(int)</span>
+<span></span>
+<span>        initial_status = list(map(lambda chr: 0 if chr == "." else 1, lines[0].strip().split(" ")[2]))</span>
+<span></span>
+<span>        for i, has_plant in enumerate(initial_status):</span>
+<span>            state[i] = has_plant #0 or 1</span>
+<span></span>
+<span>        rules = [0] * 32</span>
+<span>        for line in lines[2:]:</span>
+<span>            src, dst = map(lambda x: int(x.replace(".", "0").replace("#", "1"), 2), line.split(" => "))</span>
+<span>            rules[src] = dst</span>
+<span></span>
+<span>        return state, rules</span>
+<span></span>
+<span>    def grow(self, state, rules):</span>
+<span>        snapshot = state.copy()</span>
+<span>        min_i = min(snapshot.keys())</span>
+<span>        max_i = max(snapshot.keys())</span>
+<span>        </span>
+<span>        for i in range(min_i-2, max_i+3):</span>
+<span>            rule = (((snapshot[i-2]*2 + snapshot[i-1])*2 + snapshot[i])*2 + snapshot[i+1])*2 + snapshot[i+2]</span>
+<span>            state[i] = rules[rule]</span>
+<span>            if state[i] == 0:</span>
+<span>                del state[i]</span>
+<span>                        </span>
+<span>    def simulate(self, lines):</span>
+<span>        state, rules = self.parse(lines)</span>
+<span></span>
+<span>        for _ in range(20):</span>
+<span>            self.grow(state, rules)</span>
+<span></span>
+<span>        pots = sum(filter(lambda i: state[i] == 1, state.keys()))</span>
+<span></span>
+<span>        return pots</span>
+<span></span>
+<span>    # after 167 iterations, the number of plants increase by 26 for each generation  </span>
+<span>    # It was out of observation, see commented piece below </span>
+<span>    # tried with 100 and 500, then narrowed down to 167</span>
+<span>    def simulate_till_today(self, lines, offset=167):</span>
+<span>        state, rules = self.parse(lines)</span>
+<span></span>
+<span>        # prev = 0</span>
+<span>        # for gen in range(limit):</span>
+<span>        #     self.grow(state, rules)</span>
+<span>        #     tmp = sum(filter(lambda i: state[i] == 1, state.keys()))</span>
+<span>        #     print("gen-", gen, "-pots-", tmp, "-diff-", (tmp -prev)) </span>
+<span>        #     prev = tmp</span>
+<span></span>
+<span>        generations = 50_000_000_000</span>
+<span></span>
+<span>        for _ in range(offset):</span>
+<span>            self.grow(state, rules)</span>
+<span></span>
+<span>        pots = sum(filter(lambda i: state[i] == 1, state.keys()))</span>
+<span>        pots = pots + 26*(generations - offset)</span>
+<span></span>
+<span>        return pots</span>
+<span></span>
+<span>    def part_1(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        res = self.simulate(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("1", res, (end_time - start_time))</span>
+<span></span>
+<span>    def part_2(self):</span>
+<span>        start_time = time.time()</span>
+<span></span>
+<span>        #self.simulate_till_today(self.input, 200)</span>
+<span>        res = self.simulate_till_today(self.input)</span>
+<span></span>
+<span>        end_time = time.time()</span>
+<span></span>
+<span>        self.solve("2", res, (end_time - start_time))</span>
+<span></span>
+<span>if __name__ == '__main__':</span>
+<span>    solution = Solution()</span>
+<span></span>
+<span>    solution.part_1()</span>
+<span>    </span>
+<span>    solution.part_2()</span>
 </pre>
